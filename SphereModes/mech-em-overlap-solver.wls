@@ -1,3 +1,10 @@
+(*Limits Mathematica to requested resources*)
+Unprotect[$ProcessorCount];$ProcessorCount = 40;
+
+(*Prints the machine name that each kernel is running on*)
+Print[ParallelEvaluate[$MachineName]];
+
+
 argv = Rest @ $CommandLine;
 argc = Length @ argv;
 
@@ -100,7 +107,26 @@ overlapIntegrand[mVec_,iVec_,jVec_,a_,modeCoefs_,EMamplitude_,TMorTEFeildi_,TMor
 
 
 
-mmech = 2;
+(* WRITE DOWN OVERLAP FUNCTION *)
+overlapfunction[modes_]:=NIntegrate[Re[Activate[overlapIntegrand[{modes[[1]],modes[[2]],modes[[3]]},{modes[[4]],modes[[5]],modes[[6]]},{modes[[7]],modes[[8]],modes[[9]]},1.0,{"C0","D0",0.0,0.0,"C2","D2"}/.Quiet[(StringJoin["m",ToString[modes[[1]]],"n",ToString[modes[[2]]],"l",ToString[modes[[3]]]]/.MODES[[1]])],1.0,0,0,1,1,\[Theta],\[Phi]]]], {\[Theta],0.0,Pi},{\[Phi],0.0,2.0*Pi}, Method->{"GlobalAdaptive"},PrecisionGoal->2]
+
+
+Print[overlapfunction[{2, 0, 0, 0, 1, 2, 0, 1, 2}]//AbsoluteTiming]
+
+
+
+
+(* make a list of all possible mode combinations *)
+wholeDataArray = {};
+ParallelDo[Append[wholeDataArray,{2,nm,lm,mi,ni,pi,mj,nj,pj,overlapfunction[{2,nm,lm,mi,ni,pi,mj,nj,pj}]}],{nm,1,4,1},{lm,0,2,1},{ni,0,4,1},{mi,0,ni,1},{pi,1,4,1},{nj,0,4,1},{mj,0,nj,1},{pj,1,4,1}];
+
+Export[StringJoin[directory,"overlaps.csv"],wholeDataArray,"CSV"];
+
+
+
+
+
+(*mmech = 2;
 nmech = 0;
 lmech = 0;
 c0mech=Quiet["C0"/.(StringJoin["m",ToString[mmech],"n",ToString[nmech],"l",ToString[lmech]]/.MODES[[1]])];
@@ -110,4 +136,4 @@ d0mech=Quiet["D0"/.(StringJoin["m",ToString[mmech],"n",ToString[nmech],"l",ToStr
 d1mech=0.0;
 d2mech=Quiet["D2"/.(StringJoin["m",ToString[mmech],"n",ToString[nmech],"l",ToString[lmech]]/.MODES[[1]])];(*0.0;*)
 
-Print[NIntegrate[Re[Activate[overlapIntegrand[{mmech,nmech,lmech},{0,1,2},{0,1,2},innerRadius,{c0mech,d0mech,c1mech,d1mech,c2mech,d2mech},1.0,0,0,1,1,\[Theta],\[Phi]]]], {\[Theta],0.001,Pi},{\[Phi],0.0,2.0*Pi}, Method->{"GlobalAdaptive"},PrecisionGoal->2]]
+Print[NIntegrate[Re[Activate[overlapIntegrand[{mmech,nmech,lmech},{0,1,2},{0,1,2},innerRadius,{c0mech,d0mech,c1mech,d1mech,c2mech,d2mech},1.0,0,0,1,1,\[Theta],\[Phi]]]], {\[Theta],0.001,Pi},{\[Phi],0.0,2.0*Pi}, Method->{"GlobalAdaptive"},PrecisionGoal->2]]*)
