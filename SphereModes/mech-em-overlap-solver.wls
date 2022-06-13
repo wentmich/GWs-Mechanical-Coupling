@@ -118,9 +118,9 @@ Print[overlapfunction[{2, 0, 0, 0, 1, 2, 0, 1, 2}]//AbsoluteTiming]
 
 (* make a list of all possible mode combinations *)
 wholeDataArray = {};
-ParallelDo[Append[wholeDataArray,{2,nm,lm,mi,ni,pi,mj,nj,pj,overlapfunction[{2,nm,lm,mi,ni,pi,mj,nj,pj}]}],{nm,1,4,1},{lm,0,2,1},{ni,0,4,1},{mi,0,ni,1},{pi,1,4,1},{nj,0,4,1},{mj,0,nj,1},{pj,1,4,1}];
+ParallelDo[Append[wholeDataArray,{2,arvg[[4]],lm,mi,ni,pi,mj,nj,pj,overlapfunction[{2,nm,lm,mi,ni,pi,mj,nj,pj}]}], {lm,0,2,1}, {ni,0,3,1}, {mi,0,ni,1}, {pi,1,3,1}, {nj,0,3,1}, {mj,0,nj,1}, {pj,1,3,1}];
 
-Export[StringJoin[directory,"overlaps.csv"],wholeDataArray,"CSV"];
+Export[StringJoin[directory,"overlaps-",ToString[argv[[4]]],".csv"], wholeDataArray, "CSV"];
 
 
 
