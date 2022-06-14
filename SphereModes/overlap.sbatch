@@ -21,4 +21,8 @@
 module load mathematica/12
 
 # Run Mathematica script
-math -noprompt -run < mech-em-overlap-solver.wls 1.0 0.01 "/home/wentzel4/GWs/GWs-Mechanical-Coupling/SphereModes/radius1-thickness1percent/" "NbCavity-r=1.0-1.01.txt"
+echo "Running job number " ${SLURM_ARRAY_TASK_ID}
+
+math -noprompt -run < mech-em-overlap-solver.wls 1.0 0.01 "/home/wentzel4/GWs/GWs-Mechanical-Coupling/SphereModes/radius1-thickness1percent/" "NbCavity-r=1.0-1.01.txt" ${SLURM_ARRAY_TASK_ID}
+
+
