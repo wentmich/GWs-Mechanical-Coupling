@@ -1,5 +1,5 @@
 (*Limits Mathematica to requested resources*)
-Unprotect[$ProcessorCount];$ProcessorCount = 40;
+Unprotect[$ProcessorCount];$ProcessorCount = 20;
 
 (*Prints the machine name that each kernel is running on*)
 Print[ParallelEvaluate[$MachineName]];
@@ -8,6 +8,7 @@ Print[ParallelEvaluate[$MachineName]];
 argv = Rest @ $CommandLine;
 argc = Length @ argv;
 
+Print[argv]
 
 (* define all physical constants (not cavity parameters) *)
 SPEEDOFLIGHT=3.0*10.0^8.0;
@@ -97,8 +98,15 @@ Clear[garbageVariableUsedToDefineFunctions]
 
 
 
+
+(* GET EM MODE NORMALIZATION FACTOR *)
+getNormalizationFactor[parity_,mem_,nem_,pem_,a_,tmorte_]:=Sqrt[((4/3)*Pi*a^2)/NIntegrate[Norm[If[tmorte==1,electricFieldTM[1.0,parity,mem,nem,pem,a,wavenumberTM[mem,nem,pem,a],r,theta,phi],electricFieldTE[1.0,parity,mem,nem,pem,a,wavenumberTE[mem,nem,pem,a],r,theta,phi]]]^2*r^2*Sin[theta],{r,0.0,a},{phi,0.0,2.0*Pi},{theta,0.0,Pi},Method->"AdaptiveMonteCarlo",MaxPoints->10^5, PrecisionGoal->2]]
+
+
+
+
 (* WRITE DOWN POTENTIAL ENERGY OF EM MODES *)
-calculateEMFieldEnergy[TMorTE_,amplitude_,parity_,m_,n_,p_,a_]:=(1/2)*NIntegrate[r^2*Sin[\[Theta]]*Norm[If[TMorTE==0,electricFieldTE[amplitude,parity,m,n,p,a,If[TMorTE==0,wavenumberTE[m,n,p,a],wavenumberTM[m,n,p,a]],r,\[Theta],\[Phi]],electricFieldTM[amplitude,parity,m,n,p,a,If[TMorTE==0,wavenumberTE[m,n,p,a],wavenumberTM[m,n,p,a]],r,\[Theta],\[Phi]]]]^2*getNormalizationFactor[parity,m,n,p,a,TMorTE]^2,{r,0.0,a},{\[Theta],0.0,Pi},{\[Phi],0.0,2.0*Pi},AccuracyGoal->10]
+calculateEMFieldEnergy[TMorTE_,amplitude_,parity_,m_,n_,p_,a_]:=(1/2)*NIntegrate[r^2*Sin[\[Theta]]*Norm[If[TMorTE==0,electricFieldTE[amplitude,parity,m,n,p,a,If[TMorTE==0,wavenumberTE[m,n,p,a],wavenumberTM[m,n,p,a]],r,\[Theta],\[Phi]],electricFieldTM[amplitude,parity,m,n,p,a,If[TMorTE==0,wavenumberTE[m,n,p,a],wavenumberTM[m,n,p,a]],r,\[Theta],\[Phi]]]]^2,{r,0.0,a},{\[Theta],0.0,Pi},{\[Phi],0.0,2.0*Pi},Method -> "AdaptiveMonteCarlo", MaxPoints -> 10^5, PrecisionGoal -> 2]*getNormalizationFactor[parity,m,n,p,a,TMorTE]^2
 
 
 
@@ -108,22 +116,20 @@ overlapIntegrand[mVec_,iVec_,jVec_,a_,modeCoefs_,EMamplitude_,TMorTEFeildi_,TMor
 
 
 (* WRITE DOWN OVERLAP FUNCTION *)
-overlapfunction[modes_]:=NIntegrate[Re[Activate[overlapIntegrand[{modes[[1]],modes[[2]],modes[[3]]},{modes[[4]],modes[[5]],modes[[6]]},{modes[[7]],modes[[8]],modes[[9]]},1.0,{"C0","D0",0.0,0.0,"C2","D2"}/.Quiet[(StringJoin["m",ToString[modes[[1]]],"n",ToString[modes[[2]]],"l",ToString[modes[[3]]]]/.MODES[[1]])],1.0,0,0,1,1,\[Theta],\[Phi]]]], {\[Theta],0.0,Pi},{\[Phi],0.0,2.0*Pi}, Method->{"GlobalAdaptive"},PrecisionGoal->2]
+overlapfunction[modes_]:=NIntegrate[Re[Activate[overlapIntegrand[{modes[[1]],modes[[2]],modes[[3]]},{modes[[4]],modes[[5]],modes[[6]]},{modes[[7]],modes[[8]],modes[[9]]},1.0,{"C0","D0",0.0,0.0,"C2","D2"}/.Quiet[(StringJoin["m",ToString[modes[[1]]],"n",ToString[modes[[2]]],"l",ToString[modes[[3]]]]/.MODES[[1]])],1.0,0,0,1,1,\[Theta],\[Phi]]]], {\[Theta],0.0,Pi},{\[Phi],0.0,2.0*Pi}, Method->{"GlobalAdaptive"},Method -> "AdaptiveMonteCarlo", MaxPoints -> 10^5, PrecisionGoal -> 2]
 
-
-Print[overlapfunction[{2, 0, 0, 0, 1, 2, 0, 1, 2}]//AbsoluteTiming]
+Print["right before overlap calculation"]
+Print[overlapfunction[{2, ToExpression[argv[[7]]], 0, 0, 1, 2, 0, 1, 2}]//AbsoluteTiming]
 
 
 
 
 (* make a list of all possible mode combinations *)
-wholeDataArray = {};
-ParallelDo[Append[wholeDataArray,{2,argv[[7]],lm,mi,ni,pi,mj,nj,pj,overlapfunction[{2,argv[[7]],lm,mi,ni,pi,mj,nj,pj}]}], {lm,0,2,1}, {ni,0,3,1}, {mi,0,ni,1}, {pi,1,3,1}, {nj,0,3,1}, {mj,0,nj,1}, {pj,1,3,1}];
+wholeDataArray = ParallelTable[{2,ToExpression[argv[[7]]],lm,mi,ni,pi,mj,nj,pj,overlapfunction[{2,ToExpression[argv[[7]]],lm,mi,ni,pi,mj,nj,pj}]}, {lm,0,2,1}, {ni,0,2,1}, {mi,0,ni,1}, {pi,1,3,1}, {nj,0,2,1}, {mj,0,nj,1}, {pj,1,3,1}];
 
 Print[wholeDataArray]
 
 Export[StringJoin[directory,"overlaps-",ToString[argv[[7]]],".csv"], wholeDataArray, "CSV"];
-
 
 
 
