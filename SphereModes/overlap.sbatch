@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH --time=04:00:00                  # Job run time (hh:mm:ss)
 #SBATCH --nodes=1                        # Number of nodes
-#SBATCH --ntasks-per-node=40             # Number of task (cores/ppn) per node
-#SBATCH --job-name=GWsCalc          # Name of batch job
-#SBATCH --partition=secondary           # Partition (queue)
+#SBATCH --ntasks-per-node=20             # Number of task (cores/ppn) per node
+#SBATCH --job-name=overlaps          # Name of batch job
+#SBATCH --partition=secondary-fdr           # Partition (queue)
 #SBATCH --output=overlap-calculation.o%j            # Name of batch job output file
 ##SBATCH --error=overlap-calculation.e%j            # Name of batch job error file
 ##SBATCH --mail-user=wentzel4@illinois.edu  # Send email notifications
@@ -21,4 +21,8 @@
 module load mathematica/12
 
 # Run Mathematica script
-math -noprompt -run < mech-em-overlap-solver.wls 1.0 0.01 "/home/wentzel4/GWs/GWs-Mechanical-Coupling/SphereModes/radius1-thickness1percent/" "NbCavity-r=1.0-1.01.txt"
+echo "Running job number " ${SLURM_ARRAY_TASK_ID}
+
+math -noprompt -run < mech-em-overlap-solver.wls 1.0 0.01 "/home/wentzel4/GWs/GWs-Mechanical-Coupling/SphereModes/radius1-thickness1percent/" "NbCavity-r=1.0-1.01.txt" ${SLURM_ARRAY_TASK_ID}
+
+
