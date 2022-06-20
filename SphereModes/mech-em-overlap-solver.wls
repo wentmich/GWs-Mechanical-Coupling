@@ -111,25 +111,33 @@ calculateEMFieldEnergy[TMorTE_,amplitude_,parity_,m_,n_,p_,a_]:=(1/2)*NIntegrate
 
 
 (* WRITE DOWN THE OVERLAP INTEGRAND *)
-overlapIntegrand[mVec_,iVec_,jVec_,a_,modeCoefs_,EMamplitude_,TMorTEFeildi_,TMorTEFeildj_,parityOfFieldi_,parityOfFieldj_,\[Theta]_,\[Phi]_]:=((4*Pi*a^3/3)^(1/3)/(2*calculateEMFieldEnergy[TMorTEFeildi,EMamplitude,parityOfFieldi,iVec[[1]],iVec[[2]],iVec[[3]],a])) *(a^2*Sin[\[Theta]] * (displacementVecQ[mVec[[1]],mVec[[2]],mVec[[3]],a,modeCoefs[[1]],modeCoefs[[2]],modeCoefs[[3]],modeCoefs[[4]],modeCoefs[[5]],modeCoefs[[6]],a,\[Theta],\[Phi]].{1,0,0}) * ((If[TMorTEFeildi==1,omegaTM[iVec[[1]],iVec[[2]],iVec[[3]],a],omegaTE[iVec[[1]],iVec[[2]],iVec[[3]],a]]/If[TMorTEFeildj==1,omegaTM[jVec[[1]],jVec[[2]],jVec[[3]],a],omegaTE[jVec[[1]],jVec[[2]],jVec[[3]],a]]) * (If[TMorTEFeildj==1,magneticFieldTM[EMamplitude,parityOfFieldj, jVec[[1]], jVec[[2]], jVec[[3]],a,wavenumberTM[jVec[[1]], jVec[[2]], jVec[[3]],a],a,\[Theta],\[Phi]],magneticFieldTE[EMamplitude,parityOfFieldj, jVec[[1]], jVec[[2]], jVec[[3]],a,wavenumberTE[jVec[[1]], jVec[[2]], jVec[[3]],a],a,\[Theta],\[Phi]]].  Conjugate[If[TMorTEFeildi==1,magneticFieldTM[EMamplitude,parityOfFieldi, iVec[[1]], iVec[[2]], iVec[[3]],a,wavenumberTM[iVec[[1]], iVec[[2]], iVec[[3]],a],a,\[Theta],\[Phi]],magneticFieldTE[EMamplitude,parityOfFieldi, iVec[[1]], iVec[[2]], iVec[[3]],a,wavenumberTE[iVec[[1]], iVec[[2]], iVec[[3]],a],a,\[Theta],\[Phi]]]]) - (If[TMorTEFeildj==1,electricFieldTM[EMamplitude,parityOfFieldj, jVec[[1]], jVec[[2]], jVec[[3]],a,wavenumberTM[jVec[[1]], jVec[[2]], jVec[[3]],a],a,\[Theta],\[Phi]],electricFieldTE[EMamplitude,parityOfFieldj, jVec[[1]], jVec[[2]], jVec[[3]],a,wavenumberTE[jVec[[1]], jVec[[2]], jVec[[3]],a],a,\[Theta],\[Phi]]].Conjugate[If[TMorTEFeildi==1,electricFieldTM[EMamplitude,parityOfFieldi, iVec[[1]], iVec[[2]], iVec[[3]],a,wavenumberTM[iVec[[1]], iVec[[2]], iVec[[3]],a],a,\[Theta],\[Phi]],electricFieldTE[EMamplitude,parityOfFieldi, iVec[[1]], iVec[[2]], iVec[[3]],a,wavenumberTE[iVec[[1]], iVec[[2]], iVec[[3]],a],a,\[Theta],\[Phi]]]])))*getNormalizationFactor[parityOfFieldi,iVec[[1]],iVec[[2]],iVec[[3]],a,TMorTEFeildi]*getNormalizationFactor[parityOfFieldj,jVec[[1]],jVec[[2]],jVec[[3]],a,TMorTEFeildj]
+overlapIntegrand[mVec_,iVec_,jVec_,a_,modeCoefs_,EMamplitude_,TMorTEFeildi_,TMorTEFeildj_,parityOfFieldi_,parityOfFieldj_,\[Theta]_,\[Phi]_]:=(a^2*Sin[\[Theta]] * (displacementVecQ[mVec[[1]],mVec[[2]],mVec[[3]],a,modeCoefs[[1]],modeCoefs[[2]],modeCoefs[[3]],modeCoefs[[4]],modeCoefs[[5]],modeCoefs[[6]],a,\[Theta],\[Phi]].{1,0,0}) * ((If[TMorTEFeildi==1,omegaTM[iVec[[1]],iVec[[2]],iVec[[3]],a],omegaTE[iVec[[1]],iVec[[2]],iVec[[3]],a]]/If[TMorTEFeildj==1,omegaTM[jVec[[1]],jVec[[2]],jVec[[3]],a],omegaTE[jVec[[1]],jVec[[2]],jVec[[3]],a]]) * (If[TMorTEFeildj==1,magneticFieldTM[EMamplitude,parityOfFieldj, jVec[[1]], jVec[[2]], jVec[[3]],a,wavenumberTM[jVec[[1]], jVec[[2]], jVec[[3]],a],a,\[Theta],\[Phi]],magneticFieldTE[EMamplitude,parityOfFieldj, jVec[[1]], jVec[[2]], jVec[[3]],a,wavenumberTE[jVec[[1]], jVec[[2]], jVec[[3]],a],a,\[Theta],\[Phi]]].  Conjugate[If[TMorTEFeildi==1,magneticFieldTM[EMamplitude,parityOfFieldi, iVec[[1]], iVec[[2]], iVec[[3]],a,wavenumberTM[iVec[[1]], iVec[[2]], iVec[[3]],a],a,\[Theta],\[Phi]],magneticFieldTE[EMamplitude,parityOfFieldi, iVec[[1]], iVec[[2]], iVec[[3]],a,wavenumberTE[iVec[[1]], iVec[[2]], iVec[[3]],a],a,\[Theta],\[Phi]]]]) - (If[TMorTEFeildj==1,electricFieldTM[EMamplitude,parityOfFieldj, jVec[[1]], jVec[[2]], jVec[[3]],a,wavenumberTM[jVec[[1]], jVec[[2]], jVec[[3]],a],a,\[Theta],\[Phi]],electricFieldTE[EMamplitude,parityOfFieldj, jVec[[1]], jVec[[2]], jVec[[3]],a,wavenumberTE[jVec[[1]], jVec[[2]], jVec[[3]],a],a,\[Theta],\[Phi]]].Conjugate[If[TMorTEFeildi==1,electricFieldTM[EMamplitude,parityOfFieldi, iVec[[1]], iVec[[2]], iVec[[3]],a,wavenumberTM[iVec[[1]], iVec[[2]], iVec[[3]],a],a,\[Theta],\[Phi]],electricFieldTE[EMamplitude,parityOfFieldi, iVec[[1]], iVec[[2]], iVec[[3]],a,wavenumberTE[iVec[[1]], iVec[[2]], iVec[[3]],a],a,\[Theta],\[Phi]]]])))
+
+
+
 
 
 
 (* WRITE DOWN OVERLAP FUNCTION *)
-overlapfunction[modes_]:=NIntegrate[Re[Activate[overlapIntegrand[{modes[[1]],modes[[2]],modes[[3]]},{modes[[4]],modes[[5]],modes[[6]]},{modes[[7]],modes[[8]],modes[[9]]},1.0,{"C0","D0",0.0,0.0,"C2","D2"}/.Quiet[(StringJoin["m",ToString[modes[[1]]],"n",ToString[modes[[2]]],"l",ToString[modes[[3]]]]/.MODES[[1]])],1.0,0,0,1,1,\[Theta],\[Phi]]]], {\[Theta],0.0,Pi},{\[Phi],0.0,2.0*Pi}, Method->{"GlobalAdaptive"},Method -> "AdaptiveMonteCarlo", MaxPoints -> 10^5, PrecisionGoal -> 2]
+overlapfunction[modes_,a_,TMorTEFeildi_,TMorTEFeildj_,parityOfFieldi_,parityOfFieldj_]:=((4*Pi*a^3/3)^(1/3)/(2*calculateEMFieldEnergy[TMorTEFeildi,1.0,parityOfFieldi,modes[[4]],modes[[5]],modes[[6]],a])) *NIntegrate[Re[Activate[overlapIntegrand[{modes[[1]],modes[[2]],modes[[3]]},{modes[[4]],modes[[5]],modes[[6]]},{modes[[7]],modes[[8]],modes[[9]]},a,{"C0","D0",0.0,0.0,"C2","D2"}/.Quiet[(StringJoin["m",ToString[modes[[1]]],"n",ToString[modes[[2]]],"l",ToString[modes[[3]]]]/.MODES[[1]])],1.0,TMorTEFeildi,TMorTEFeildj,parityOfFieldi,parityOfFieldj,\[Theta],\[Phi]]]], {\[Theta],0.0,Pi},{\[Phi],0.0,2.0*Pi}, Method->{"AdaptiveMonteCarlo"},MaxPoints->3*10^4,PrecisionGoal->2]*getNormalizationFactor[parityOfFieldi,modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeildi]*getNormalizationFactor[parityOfFieldj,modes[[7]],modes[[8]],modes[[9]],a,TMorTEFeildj]
+
+
+
+
+
 
 Print["right before overlap calculation"]
-Print[overlapfunction[{2, ToExpression[argv[[7]]], 0, 0, 1, 2, 0, 1, 2}]//AbsoluteTiming]
+Print[overlapfunction[{2, 0, 0, 0, 1, 2, 0, 1, 2}, innerRadius, 0, 0, 1, 1] // AbsoluteTiming]
 
 
 
 
 (* make a list of all possible mode combinations *)
-wholeDataArray = ParallelTable[{2,ToExpression[argv[[7]]],lm,mi,ni,pi,mj,nj,pj,overlapfunction[{2,ToExpression[argv[[7]]],lm,mi,ni,pi,mj,nj,pj}]}, {lm,0,2,1}, {ni,0,2,1}, {mi,0,ni,1}, {pi,1,3,1}, {nj,0,2,1}, {mj,0,nj,1}, {pj,1,3,1}];
+wholeDataArray = ParallelTable[{2,ToExpression[argv[[7]]],lm,mi,ni,pi,mj,nj,pj,overlapfunction[{2,ToExpression[argv[[7]]],lm,mi,ni,pi,mj,nj,pj}, innerRadius, 0, 0, 1, 1]}, {lm,0,2,1}, {ni,0,2,1}, {mi,0,2,1}, {pi,1,3,1}, {nj,0,2,1}, {mj,0,2,1}, {pj,1,3,1}];
 
 Print[wholeDataArray]
 
-Export[StringJoin[directory,"overlaps-",ToString[argv[[7]]],".csv"], wholeDataArray, "CSV"];
+Export[StringJoin[directory,"overlaps/overlaps-",ToString[argv[[7]]],".txt"], wholeDataArray];
 
 
 
