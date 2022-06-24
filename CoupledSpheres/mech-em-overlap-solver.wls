@@ -1,8 +1,8 @@
 (*Limits Mathematica to requested resources*)
-Unprotect[$ProcessorCount];$ProcessorCount = 20;
+(*Unprotect[$ProcessorCount];$ProcessorCount = 20;*)
 
 (*Prints the machine name that each kernel is running on*)
-Print[ParallelEvaluate[$MachineName]];
+(*Print[ParallelEvaluate[$MachineName]];*)
 
 
 argv = Rest @ $CommandLine;
@@ -43,8 +43,10 @@ lambdaMaterial = -shearModulus*(youngsModulus-2*shearModulus)/(youngsModulus-3*s
 vt = (matieralDensity/shearModulus)^(-1/2);
 vl = (matieralDensity/(lambdaMaterial+2*shearModulus))^(-1/2);
 (* define all cavity parameters *)
-innerRadius=1.0;
-outerRadius=1.01;
+innerRadius=ToExpression[argv[[3]]];
+outerRadius=ToExpression[argv[[3]]] + ToExpression[argv[[4]]];
+directory = argv[[5]];
+filename = argv[[6]];
 maxWaveNumber=10.0^3;
 
 
@@ -69,9 +71,7 @@ waveNumbersP={{0},{0},Table[Quiet["wavenumberp"/.(StringJoin["m",ToString[2],"n"
 
 
 
-
-
-
+Print["loaded in mode data..."]
 
 
 (* CALCULATE THE ZEROS OF ALL THE BESSEL FUNCTIONS *)
@@ -88,7 +88,7 @@ SphericalBesselJDerivZero[n_,p_]:=sphericalBesselJDerivZero[[n+1]][[p]]
 
 
 
-
+Print["got zeros of bessel functions loaded..."]
 
 
 
@@ -115,7 +115,7 @@ Clear[garbageVariableUsedToDefineFunctions]
 
 
 
-
+Print["defined mechanical modes..."]
 
 
 
@@ -148,7 +148,7 @@ Clear[garbageVariableUsedToDefineFunctions]
 
 
 
-
+Print["defined EM modes..."]
 
 
 
@@ -157,7 +157,7 @@ Clear[garbageVariableUsedToDefineFunctions]
 getNormalizationFactor[parity_,mem_,nem_,pem_,a_,tmorte_,k_]:=(*Sqrt[((4/3)*Pi*a^2)/NIntegrate[Norm[If[tmorte==1,electricFieldTM[1.0,parity,mem,nem,pem,a,k,r,theta,phi],electricFieldTE[1.0,parity,mem,nem,pem,a,k,r,theta,phi]]]^2*r^2*Sin[theta],{r,0.0,a},{phi,0.0,2.0*Pi},{theta,0.0,Pi},Method->"AdaptiveMonteCarlo",MaxPoints->10^5]]*) 1.0
 
 
-
+Print["defined normalization factor..."]
 
 
 
@@ -167,7 +167,7 @@ calculateEMFieldEnergy[TMorTE_,amplitude_,parity_,m_,n_,p_,a_,k_]:=(1/2)*NIntegr
 
 
 
-
+Print["defined energy..."]
 
 
 
@@ -194,7 +194,7 @@ overlap1Sphere2Modes[modes_,a_,TMorTEFeildi_,TMorTEFeildj_,parityOfFieldi_,parit
 
 
 
-
+Print["defined overlap function..."]
 
 
 
@@ -232,7 +232,7 @@ getShiftedFrequencies[parity_,m_,n_,p_,a_,d_,tmorte_,offsets_]:=Activate[If[tmor
 
 
 
-
+Print["defined frequency splittings"]
 
 
 
@@ -245,7 +245,7 @@ Evaluate[getShiftedFrequencies[parityOfFieldi,modes[[4]],modes[[5]],modes[[6]],a
 
 
 
-
+Print["defined coupled overlap function"]
 
 
 
