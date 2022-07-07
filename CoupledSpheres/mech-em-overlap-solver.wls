@@ -267,8 +267,36 @@ Print["defined overlap function..."]
 
 
 (* GET FREQUENCY SPLITTINGS *)
+(* define the coupling points to be along the x axis *)
+couplingPoints={{innerRadius,Pi/2.0,Pi},{innerRadius,Pi/2.0,0.0}};
 
+Fpotential[amplitude_,parity_,tmorte_, m_,n_,p_,a_,k_,r_,\[Theta]_,\[Phi]_,ang1_,ang2_,ang3_]:=(1/(omegaEM[m,n,p,a,tmorte]))*magneticField[amplitude,parity,tmorte, m,n,p,a,k,r,\[Theta],\[Phi],ang1,ang2,ang3]
+garbageVariableUsedToDefineFunctions=(1/(k))*electricField[amplitude,parity,tmorte,m0,n0,p0,a,k,r,\[Theta],\[Phi],ang1,ang2,ang3]
+Apotential[amplitude_,parity_,tmorte_, m0_,n0_,p0_,a_,k_,r_,\[Theta]_,\[Phi]_,ang1_,ang2_,ang3_]:=Evaluate[garbageVariableUsedToDefineFunctions]
+Clear[garbageVariableUsedToDefineFunctions]
 
+garbageVariableUsedToDefineFunctions=2*Norm[Fpotential[amplitude,parity,tmorte,m0,n0,p0,a,k,#1,#2,#3,offsets[[4]],offsets[[5]],offsets[[6]]]&@@couplingPoints[[1]]]^2-(Apotential[amplitude,parity,tmorte,m0,n0,p0,a,k,#1,#2,#3,offsets[[4]],offsets[[5]],offsets[[6]]][[1]]&@@couplingPoints[[1]])^2;
+c\[Alpha]\[Alpha][amplitude_,parity_,tmorte_, m0_,n0_,p0_,a_,k_,offsets_]:=Evaluate[garbageVariableUsedToDefineFunctions]
+Clear[garbageVariableUsedToDefineFunctions];
+
+garbageVariableUsedToDefineFunctions=2*Norm[Fpotential[amplitude,parity,tmorte,m0,n0,p0,a,k,#1,#2,#3,offsets[[7]],offsets[[8]],offsets[[9]]]&@@couplingPoints[[2]]]^2-(Apotential[amplitude,parity,tmorte,m0,n0,p0,a,k,#1,#2,#3,offsets[[7]],offsets[[8]],offsets[[9]]][[1]]&@@couplingPoints[[2]])^2;
+c\[Beta]\[Beta][amplitude_,parity_,tmorte_, m0_,n0_,p0_,a_,k_,offsets_]:=Evaluate[garbageVariableUsedToDefineFunctions]
+Clear[garbageVariableUsedToDefineFunctions];
+
+garbageVariableUsedToDefineFunctions=2*(Fpotential[amplitude,parity,tmorte,m0,n0,p0,a,k,#1,#2,#3,offsets[[4]],offsets[[5]],offsets[[6]]]&@@couplingPoints[[1]]).(Fpotential[amplitude,parity,tmorte,m0,n0,p0,a,k,#1,#2,#3,offsets[[7]],offsets[[8]],offsets[[9]]]&@@couplingPoints[[2]])-(Apotential[amplitude,parity,tmorte,m0,n0,p0,a,k,#1,#2,#3,offsets[[7]],offsets[[8]],offsets[[9]]][[1]]&@@couplingPoints[[2]])*(Apotential[amplitude,parity,tmorte,m0,n0,p0,a,k,#1,#2,#3,offsets[[6]],offsets[[7]],offsets[[8]]][[1]]&@@couplingPoints[[1]]);
+c\[Alpha]\[Beta][amplitude_,parity_,tmorte_, m0_,n0_,p0_,a_,k_,offsets_]:=Evaluate[garbageVariableUsedToDefineFunctions]
+Clear[garbageVariableUsedToDefineFunctions];
+
+(* solve for the frequency shift from quadratic *)
+garbageVariableUsedToDefineFunctions=(( 2 - (4/3)*(d^3/V)*(c\[Alpha]\[Alpha][amplitude,parity,tmorte, m0,n0,p0,a,k,offsets]+c\[Beta]\[Beta][amplitude,parity,tmorte, m,n,p,a,k,offsets]))/2 + (1/2)*(( 2 - (4/3)*(d^3/V)*(c\[Alpha]\[Alpha][amplitude,parity,tmorte, m0,n0,p0,a,k,offsets]+c\[Beta]\[Beta][amplitude,parity,tmorte, m,n,p,a,k,offsets]))^2 - 4*(1 - (4/3)*(d^3/V)*(c\[Alpha]\[Alpha][amplitude,parity,tmorte,m0,n0,p0,a,k,offsets]+c\[Beta]\[Beta][amplitude,parity,tmorte, m,n,p,a,k,offsets]) + (16/9)*(d^6/V^2)*(c\[Alpha]\[Alpha][amplitude,parity,tmorte,m0,n0,p0,a,k,offsets]*c\[Beta]\[Beta][amplitude,parity,tmorte, m,n,p,a,k,offsets]-c\[Alpha]\[Beta][amplitude,parity,tmorte,m0,n0,p0,a,k,offsets]^2)))^(1/2));
+frequencyCoefPlus[amplitude_,parity_,tmorte_, m0_,n0_,p0_,a_,k_,d_,V_,offsets_]:=Evaluate[garbageVariableUsedToDefineFunctions]
+Clear[garbageVariableUsedToDefineFunctions];
+
+garbageVariableUsedToDefineFunctions=(( 2 - (4/3)*(d^3/V)*(c\[Alpha]\[Alpha][amplitude,parity,tmorte, m0,n0,p0,a,k,offsets]+c\[Beta]\[Beta][amplitude,parity,tmorte, m,n,p,a,k,offsets]))/2 - (1/2)*(( 2 - (4/3)*(d^3/V)*(c\[Alpha]\[Alpha][amplitude,parity,tmorte, m0,n0,p0,a,k,offsets]+c\[Beta]\[Beta][amplitude,parity,tmorte, m,n,p,a,k,offsets]))^2 - 4*(1 - (4/3)*(d^3/V)*(c\[Alpha]\[Alpha][amplitude,parity,tmorte, m0,n0,p0,a,k,offsets]+c\[Beta]\[Beta][amplitude,parity,tmorte, m,n,p,a,k,offsets]) + (16/9)*(d^6/V^2)*(c\[Alpha]\[Alpha][amplitude,parity,tmorte, m0,n0,p0,a,k,offsets]*c\[Beta]\[Beta][amplitude,parity,tmorte, m,n,p,a,k,offsets]-c\[Alpha]\[Beta][amplitude,parity,tmorte, m0,n0,p0,a,k,offsets]^2)))^(1/2));
+frequencyCoefMinus[amplitude_,parity_,tmorte_, m0_,n0_,p0_,a_,k_,d_,V_,offsets_]:=Evaluate[garbageVariableUsedToDefineFunctions]
+Clear[garbageVariableUsedToDefineFunctions];
+
+getShiftedFrequencies[amplitude_,parity_,tmorte_,m_,n_,p_,a_,d_,offsets_]:=Activate[omegaEM[m,n,p,a,tmorte]*{frequencyCoefPlus[amplitude,parity,tmorte, m,n,p,a,wavenumberEM[m,n,p,a,tmorte],d,(4.0/3.0)*Pi*a^3,offsets],frequencyCoefMinus[amplitude,parity,tmorte, m,n,p,a,wavenumberEM[m,n,p,a,tmorte],d,(4.0/3.0)*Pi*a^3,offsets] }]
 
 
 
@@ -286,11 +314,20 @@ Print["defined frequency splittings"]
 
 
 (* WRITE DOWN OVERLAP FUNCTION FOR COUPLED SPHERES *)
-overlapCoupledSpheres[modes_,a_,TMorTEFeild_,parityOfField_,d_,offsets_]:=overlapfunction[{modes[[1]],modes[[2]],modes[[3]],modes[[4]],modes[[5]],modes[[6]],modes[[4]],modes[[5]],modes[[6]]},a,TMorTEFeild,TMorTEFeild,parityOfField,parityOfField,(wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild]-0.001*wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild])/SPEEDOFLIGHT,
+overlapCoupledSpheresArtificialSplitting[modes_,a_,TMorTEFeild_,parityOfField_,d_,offsets_]:=overlapfunction[{modes[[1]],modes[[2]],modes[[3]],modes[[4]],modes[[5]],modes[[6]],modes[[4]],modes[[5]],modes[[6]]},a,TMorTEFeild,TMorTEFeild,parityOfField,parityOfField,(wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild]-0.001*wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild])/SPEEDOFLIGHT,
 (wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild]+0.001*wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild])/SPEEDOFLIGHT,(wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild]-0.001*wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild]),
 (wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild]+0.001*wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild]),{offsets[[1]],offsets[[2]],offsets[[3]],offsets[[4]],offsets[[5]],offsets[[6]],offsets[[4]],offsets[[5]],offsets[[6]]}]+overlapfunction[{modes[[1]],modes[[2]],modes[[3]],modes[[4]],modes[[5]],modes[[6]],modes[[4]],modes[[5]],modes[[6]]},a,TMorTEFeild,TMorTEFeild,parityOfField,parityOfField,(wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild]-0.001*wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild])/SPEEDOFLIGHT,
 (wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild]+0.001*wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild])/SPEEDOFLIGHT,(wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild]-0.001*wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild]),
 (wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild]+0.001*wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild]),{offsets[[1]],offsets[[2]],offsets[[3]],offsets[[7]],offsets[[8]],offsets[[9]],offsets[[7]],offsets[[8]],offsets[[9]]}]
+
+overlapCoupledSpheres[modes_,a_,TMorTEFeild_,parityOfField_,d_,offsets_]:=(overlapfunction[{modes[[1]],modes[[2]],modes[[3]],modes[[4]],modes[[5]],modes[[6]],modes[[4]],modes[[5]],modes[[6]]},a,TMorTEFeild,TMorTEFeild,parityOfField,parityOfField,#2/SPEEDOFLIGHT,
+#1/SPEEDOFLIGHT,#2,#1,{offsets[[1]],offsets[[2]],offsets[[3]],offsets[[4]],offsets[[5]],offsets[[6]],offsets[[4]],offsets[[5]],offsets[[6]]}]+overlapfunction[{modes[[1]],modes[[2]],modes[[3]],modes[[4]],modes[[5]],modes[[6]],modes[[4]],modes[[5]],modes[[6]]},a,TMorTEFeild,TMorTEFeild,parityOfField,parityOfField,#2/SPEEDOFLIGHT,
+#1/SPEEDOFLIGHT,#2,#1,{offsets[[1]],offsets[[2]],offsets[[3]],offsets[[7]],offsets[[8]],offsets[[9]],offsets[[7]],offsets[[8]],offsets[[9]]}])&@@getShiftedFrequencies[1.0,parityOfField,TMorTEFeild,modes[[4]],modes[[5]],modes[[6]],a,d,offsets]
+
+overlapCoupledSpheresPrintSplitting[modes_,a_,TMorTEFeild_,parityOfField_,d_,offsets_]:={(overlapfunction[{modes[[1]],modes[[2]],modes[[3]],modes[[4]],modes[[5]],modes[[6]],modes[[4]],modes[[5]],modes[[6]]},a,TMorTEFeild,TMorTEFeild,parityOfField,parityOfField,#2/SPEEDOFLIGHT,
+#1/SPEEDOFLIGHT,#2,#1,{offsets[[1]],offsets[[2]],offsets[[3]],offsets[[4]],offsets[[5]],offsets[[6]],offsets[[4]],offsets[[5]],offsets[[6]]}]+overlapfunction[{modes[[1]],modes[[2]],modes[[3]],modes[[4]],modes[[5]],modes[[6]],modes[[4]],modes[[5]],modes[[6]]},a,TMorTEFeild,TMorTEFeild,parityOfField,parityOfField,#2/SPEEDOFLIGHT,
+#1/SPEEDOFLIGHT,#2,#1,{offsets[[1]],offsets[[2]],offsets[[3]],offsets[[7]],offsets[[8]],offsets[[9]],offsets[[7]],offsets[[8]],offsets[[9]]}])&@@getShiftedFrequencies[1.0,parityOfField,TMorTEFeild,modes[[4]],modes[[5]],modes[[6]],a,d,offsets],getShiftedFrequencies[1.0,parityOfField,TMorTEFeild,modes[[4]],modes[[5]],modes[[6]],a,d,offsets]}
+
 
 
 
