@@ -1,8 +1,8 @@
 (*Limits Mathematica to requested resources*)
-(*Unprotect[$ProcessorCount];$ProcessorCount = 20;*)
+Unprotect[$ProcessorCount];$ProcessorCount = 20;
 
 (*Prints the machine name that each kernel is running on*)
-(*Print[ParallelEvaluate[$MachineName]];*)
+Print[ParallelEvaluate[$MachineName]];
 
 
 argv = Rest @ $CommandLine;
@@ -106,10 +106,6 @@ Print["got zeros of bessel functions loaded..."]
 
 
 (* WRITE DOWN THE MECHANICAL MODES OF THE CAVITY *)
-(* define the necessary differential operators *)
-rCrossNabla[myFnc_,r_,\[Theta]_,\[Phi]_,m_,n_,l_,a_]:={0, -(1/Sin[\[Theta]])*D[myFnc[m,n,l,a,r,\[Theta],\[Phi]],\[Phi]], D[myFnc[m,n,l,a,r,\[Theta],\[Phi]],\[Theta]]}
-nablaCrossRCrossNabla[myFnc_,r_,\[Theta]_,\[Phi]_,m_,n_,l_,a_]:={(1/r)* D[myFnc[m,n,l,a,r,\[Theta],\[Phi]],\[Theta],\[Theta]] + (1/(r*Sin[\[Theta]]^2))*D[myFnc[m,n,l,a,r,\[Theta],\[Phi]],\[Phi],\[Phi]], -D[myFnc[m,n,l,a,r,\[Theta],\[Phi]],\[Theta],r]+(1/r)*D[myFnc[m,n,l,a,r,\[Theta],\[Phi]],\[Theta]], -(1/Sin[\[Theta]])*D[myFnc[m,n,l,a,r,\[Theta],\[Phi]],\[Phi],r]+(1/(r*Sin[\[Theta]]))*D[myFnc[m,n,l,a,r,\[Theta],\[Phi]],\[Phi]]}
-
 (* wave numbers *)
 wavek[m_,n_,l_,a_]:=Inactivate[waveNumbersK[[m+1]][[n+1]]]
 wavep[m_,n_,l_,a_]:=Inactivate[waveNumbersP[[m+1]][[n+1]]]
@@ -124,7 +120,7 @@ aux\[Psi][m_,n_,l_,a_,r_,\[Theta]_,\[Phi]_]:=SphericalBesselJ[m,wavek[m,n,l,a]*r
 aux\[Psi]T[m_,n_,l_,a_,r_,\[Theta]_,\[Phi]_]:=SphericalBesselY[m,wavek[m,n,l,a]*r]*SphericalHarmonicY[m,l,\[Theta],\[Phi]];
 
 (* mechanical mode displacement vector *)
-garbageVariableUsedToDefineFunctions=c0*Grad[aux\[Phi][m,n,l,a,r,\[Theta],\[Phi]],{r,\[Theta],\[Phi]},"Spherical"] + d0*Grad[aux\[Phi]T[m,n,l,a,r,\[Theta],\[Phi]],{r,\[Theta],\[Phi]},"Spherical"]+c1*rCrossNabla[aux\[Psi],r,\[Theta],\[Phi],m,n,l,a]+d1*rCrossNabla[aux\[Psi]T,r,\[Theta],\[Phi],m,n,l,a]+I*c2*nablaCrossRCrossNabla[aux\[Psi],r,\[Theta],\[Phi],m,n,l,a]+I*d2*nablaCrossRCrossNabla[aux\[Psi]T,r,\[Theta],\[Phi],m,n,l,a];
+garbageVariableUsedToDefineFunctions=c0*Grad[aux\[Phi][m,n,l,a,r,\[Theta],\[Phi]],{r,\[Theta],\[Phi]},"Spherical"] + d0*Grad[aux\[Phi]T[m,n,l,a,r,\[Theta],\[Phi]],{r,\[Theta],\[Phi]},"Spherical"]+c1*Cross[{r,0,0},Grad[aux\[Psi][m,n,l,a,r,\[Theta],\[Phi]],{r,\[Theta],\[Phi]},"Spherical"]]+d1*Cross[{r,0,0},Grad[aux\[Psi]T[m,n,l,a,r,\[Theta],\[Phi]],{r,\[Theta],\[Phi]},"Spherical"]]+c2*Curl[Cross[{r,0,0},Grad[aux\[Psi][m,n,l,a,r,\[Theta],\[Phi]],{r,\[Theta],\[Phi]},"Spherical"]],{r,\[Theta],\[Phi]},"Spherical"]+d2*Curl[Cross[{r,0,0},Grad[aux\[Psi]T[m,n,l,a,r,\[Theta],\[Phi]],{r,\[Theta],\[Phi]},"Spherical"]],{r,\[Theta],\[Phi]},"Spherical"];
 displacementVecQnotRotated[m_,n_,l_,a_,c0_,d0_,c1_,d1_,c2_,d2_,r_,\[Theta]_,\[Phi]_]:=Evaluate[garbageVariableUsedToDefineFunctions]
 Clear[garbageVariableUsedToDefineFunctions]
 
@@ -132,7 +128,6 @@ Clear[garbageVariableUsedToDefineFunctions]
 garbageVariableUsedToDefineFunctions=rotateSphericalVector[displacementVecQnotRotated[m,n,l,a,c0,d0,c1,d1,c2,d2,#1,#2,#3]&@@ToSphericalCoordinates[Inverse[EulerMatrix[{ang1,ang2,ang3}]].FromSphericalCoordinates[{r,\[Theta],\[Phi]}]],{r,\[Theta],\[Phi]},{ang1,ang2,ang3}];
 displacementVecQ[m_,n_,l_,a_,c0_,d0_,c1_,d1_,c2_,d2_,r_,\[Theta]_,\[Phi]_,ang1_,ang2_,ang3_]:=Evaluate[garbageVariableUsedToDefineFunctions]
 Clear[garbageVariableUsedToDefineFunctions]
-
 
 
 
@@ -314,8 +309,8 @@ overlapCoupledSpheres[{2,0,0,0,1,2},innerRadius,0,1,0.1,{0,0,0,0,0,0,0,0,0}]//Ab
 
 
 (* make a list of all possible mode combinations *)
-(*wholeDataArray = ParallelTable[{2,ToExpression[argv[[7]]],lm,mi,ni,pi,overlapCoupledSpheres[{2,ToExpression[argv[[7]]],lm,mi,ni,pi}, innerRadius, 0, 0, 1, 1]}, {lm,0,2,1}, {ni,0,2,1}, {mi,0,2,1}, {pi,1,3,1}];
+wholeDataArray = ParallelTable[{theta1, theta2, overlapCoupledSpheres[{2,0,0,0,1,2},innerRadius,0,1,0.1,{0,theta1,theta2,0,-Pi/4.0,0,0,2.0*Pi - 3.0*Pi/4.0,0}]}, {theta1,0.0,2.0*Pi,0.3}, {theta2,0.0,2.0*Pi,0.3}];
 
 Print[wholeDataArray]
 
-Export[StringJoin[directory,"overlaps/overlaps-coupled-spheres-",ToString[argv[[7]]],".txt"], wholeDataArray];*)
+Export[StringJoin[directory,"overlaps/overlaps-mech-EM-fixedEM-vary-mech-z-and-xy.txt"], wholeDataArray, "CSV"];
