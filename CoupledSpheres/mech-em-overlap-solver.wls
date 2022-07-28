@@ -49,7 +49,8 @@ directory = argv[[5]];
 filename = argv[[6]];
 maxWaveNumber=10.0^3;
 
-
+Print[innerRadius]
+Print[outerRadius]
 
 
 
@@ -65,7 +66,7 @@ p is a point in spherical coordinates p = {r, theta, phi} *)
 cartvec2spherevec[X_,p_]:={X[[1]]*Sin[p[[2]]]*Cos[p[[3]]]+X[[2]]*Sin[p[[2]]]*Sin[p[[3]]]+X[[3]]*Cos[p[[2]]],X[[1]]*Cos[p[[2]]]*Cos[p[[3]]]+X[[2]]*Cos[p[[2]]]*Sin[p[[3]]]-X[[3]]*Sin[p[[2]]],-X[[1]]*Sin[p[[3]]]+X[[2]]*Cos[p[[3]]]}
 
 (* write a cartesian rotation function *)
-rotateCartesianVector[vector_,eulerangles_]:=EulerMatrix[eulerangles].vector
+rotateCartesianVector[vector_,eulerangles_]:=RollPitchYawMatrix[eulerangles,{3,2,3}].vector
 
 (* write a function to rotate a spherical vector *)
 rotateSphericalVector[vector_,currentpoint_,eulerangles_]:=cartvec2spherevec[rotateCartesianVector[spherevec2cartvec[vector,currentpoint],eulerangles],currentpoint]
@@ -79,10 +80,10 @@ rotateSphericalVector[vector_,currentpoint_,eulerangles_]:=cartvec2spherevec[rot
 
 (* GET THE MECHANICAL MODE DATA FROM DIRECTORY *)
 MODES =Quiet[ToExpression[Quiet[Import[StringJoin[directory, filename]]]]];
-waveNumbersK={{0},{0},Table[Quiet["wavenumberk"/.(StringJoin["m",ToString[2],"n",ToString[n],"l",ToString[0]]/.MODES[[1]])],{n, 0, 10}]};
-waveNumbersP={{0},{0},Table[Quiet["wavenumberp"/.(StringJoin["m",ToString[2],"n",ToString[n],"l",ToString[0]]/.MODES[[1]])],{n, 0, 10}]};
+waveNumbersK=Table[Quiet["wavenumberk"/.(StringJoin["m",ToString[2],"n",ToString[n],"l",ToString[0]]/.MODES[[1]])],{m,0,3},{n, 0, 3}];
+waveNumbersP=Table[Quiet["wavenumberp"/.(StringJoin["m",ToString[2],"n",ToString[n],"l",ToString[0]]/.MODES[[1]])],{m,0,3},{n, 0, 3}];
 
-
+Print[MODES]
 
 Print["loaded in mode data..."]
 
@@ -113,6 +114,11 @@ wavep[m_,n_,l_,a_]:=Inactivate[waveNumbersP[[m+1]][[n+1]]]
 wavep[m_,n_,l_,a_]:= Sqrt[omegaMech[m,n,l,a]^2 / vl^2];*)
 omegaMech[m_,n_,l_,a_]:=vt*Sqrt[wavek[m,n,l,a]]
 
+Print[Activate[wavep[2,0,0,0.1]]]
+Print[Activate[wavek[2,0,0,0.1]]]
+Print[Activate[omegaMech[2,0,0,0.1]]]
+
+
 (* constituent functions *)
 aux\[Phi][m_,n_,l_,a_,r_,\[Theta]_,\[Phi]_]:=SphericalBesselJ[m,wavep[m,n,l,a]*r]*SphericalHarmonicY[m,l,\[Theta],\[Phi]];
 aux\[Phi]T[m_,n_,l_,a_,r_,\[Theta]_,\[Phi]_]:=SphericalBesselY[m,wavep[m,n,l,a]*r]*SphericalHarmonicY[m,l,\[Theta],\[Phi]];
@@ -125,7 +131,7 @@ displacementVecQnotRotated[m_,n_,l_,a_,c0_,d0_,c1_,d1_,c2_,d2_,r_,\[Theta]_,\[Ph
 Clear[garbageVariableUsedToDefineFunctions]
 
 (* define a rotated displacement vector field *)
-garbageVariableUsedToDefineFunctions=rotateSphericalVector[displacementVecQnotRotated[m,n,l,a,c0,d0,c1,d1,c2,d2,#1,#2,#3]&@@ToSphericalCoordinates[Inverse[EulerMatrix[{ang1,ang2,ang3}]].FromSphericalCoordinates[{r,\[Theta],\[Phi]}]],{r,\[Theta],\[Phi]},{ang1,ang2,ang3}];
+garbageVariableUsedToDefineFunctions=rotateSphericalVector[displacementVecQnotRotated[m,n,l,a,c0,d0,c1,d1,c2,d2,#1,#2,#3]&@@ToSphericalCoordinates[Inverse[RollPitchYawMatrix[{ang1,ang2,ang3},{3,2,3}]].FromSphericalCoordinates[{r,\[Theta],\[Phi]}]],{r,\[Theta],\[Phi]},{ang1,ang2,ang3}];
 displacementVecQ[m_,n_,l_,a_,c0_,d0_,c1_,d1_,c2_,d2_,r_,\[Theta]_,\[Phi]_,ang1_,ang2_,ang3_]:=Evaluate[garbageVariableUsedToDefineFunctions]
 Clear[garbageVariableUsedToDefineFunctions]
 
@@ -171,19 +177,19 @@ magneticFieldTMnotrotated[amplitude_,parity_, m_,n_,p_,a_,k_,r_,\[Theta]_,\[Phi]
 Clear[garbageVariableUsedToDefineFunctions]
 
 (* calculate the rotated versions of these fields using the same method as for the mechanical mode rotations *)
-garbageVariableUsedToDefineFunctions=Evaluate[rotateSphericalVector[electricFieldTEnotrotated[amplitude,parity, m,n,p,a,k,#1,#2,#3]&@@ToSphericalCoordinates[Inverse[EulerMatrix[{ang1,ang2,ang3}]].FromSphericalCoordinates[{r,\[Theta],\[Phi]}]],{r,\[Theta],\[Phi]},{ang1,ang2,ang3}]];
+garbageVariableUsedToDefineFunctions=Evaluate[rotateSphericalVector[electricFieldTEnotrotated[amplitude,parity, m,n,p,a,k,#1,#2,#3]&@@ToSphericalCoordinates[Inverse[RollPitchYawMatrix[{ang1,ang2,ang3},{3,2,3}]].FromSphericalCoordinates[{r,\[Theta],\[Phi]}]],{r,\[Theta],\[Phi]},{ang1,ang2,ang3}]];
 electricFieldTE[amplitude_,parity_, m_,n_,p_,a_,k_,r_,\[Theta]_,\[Phi]_,ang1_,ang2_,ang3_]:=Evaluate[garbageVariableUsedToDefineFunctions]
 Clear[garbageVariableUsedToDefineFunctions]
 
-garbageVariableUsedToDefineFunctions=Evaluate[rotateSphericalVector[magneticFieldTEnotrotated[amplitude,parity, m,n,p,a,k,#1,#2,#3]&@@ToSphericalCoordinates[Inverse[EulerMatrix[{ang1,ang2,ang3}]].FromSphericalCoordinates[{r,\[Theta],\[Phi]}]],{r,\[Theta],\[Phi]},{ang1,ang2,ang3}]];
+garbageVariableUsedToDefineFunctions=Evaluate[rotateSphericalVector[magneticFieldTEnotrotated[amplitude,parity, m,n,p,a,k,#1,#2,#3]&@@ToSphericalCoordinates[Inverse[RollPitchYawMatrix[{ang1,ang2,ang3},{3,2,3}]].FromSphericalCoordinates[{r,\[Theta],\[Phi]}]],{r,\[Theta],\[Phi]},{ang1,ang2,ang3}]];
 magneticFieldTE[amplitude_,parity_, m_,n_,p_,a_,k_,r_,\[Theta]_,\[Phi]_,ang1_,ang2_,ang3_]:=Evaluate[garbageVariableUsedToDefineFunctions]
 Clear[garbageVariableUsedToDefineFunctions]
 
-garbageVariableUsedToDefineFunctions=Evaluate[rotateSphericalVector[electricFieldTMnotrotated[amplitude,parity, m,n,p,a,k,#1,#2,#3]&@@ToSphericalCoordinates[Inverse[EulerMatrix[{ang1,ang2,ang3}]].FromSphericalCoordinates[{r,\[Theta],\[Phi]}]],{r,\[Theta],\[Phi]},{ang1,ang2,ang3}]];
+garbageVariableUsedToDefineFunctions=Evaluate[rotateSphericalVector[electricFieldTMnotrotated[amplitude,parity, m,n,p,a,k,#1,#2,#3]&@@ToSphericalCoordinates[Inverse[RollPitchYawMatrix[{ang1,ang2,ang3},{3,2,3}]].FromSphericalCoordinates[{r,\[Theta],\[Phi]}]],{r,\[Theta],\[Phi]},{ang1,ang2,ang3}]];
 electricFieldTM[amplitude_,parity_, m_,n_,p_,a_,k_,r_,\[Theta]_,\[Phi]_,ang1_,ang2_,ang3_]:=Evaluate[garbageVariableUsedToDefineFunctions]
 Clear[garbageVariableUsedToDefineFunctions]
 
-garbageVariableUsedToDefineFunctions=Evaluate[rotateSphericalVector[magneticFieldTMnotrotated[amplitude,parity, m,n,p,a,k,#1,#2,#3]&@@ToSphericalCoordinates[Inverse[EulerMatrix[{ang1,ang2,ang3}]].FromSphericalCoordinates[{r,\[Theta],\[Phi]}]],{r,\[Theta],\[Phi]},{ang1,ang2,ang3}]];
+garbageVariableUsedToDefineFunctions=Evaluate[rotateSphericalVector[magneticFieldTMnotrotated[amplitude,parity, m,n,p,a,k,#1,#2,#3]&@@ToSphericalCoordinates[Inverse[RollPitchYawMatrix[{ang1,ang2,ang3},{3,2,3}]].FromSphericalCoordinates[{r,\[Theta],\[Phi]}]],{r,\[Theta],\[Phi]},{ang1,ang2,ang3}]];
 magneticFieldTM[amplitude_,parity_, m_,n_,p_,a_,k_,r_,\[Theta]_,\[Phi]_,ang1_,ang2_,ang3_]:=Evaluate[garbageVariableUsedToDefineFunctions]
 Clear[garbageVariableUsedToDefineFunctions]
 
@@ -244,11 +250,11 @@ parityOfField = 1 for even parity 0 for odd (I get the stupidity here)
 ki, kj, wi, wj = wave numbers and frequencies for the waves
 theta, phi = overall integration variables
 offsets = three sets of three Euler angles to define coordinate rotations for each of the EM fields and the mechanical mode *)
-overlapIntegrand[mVec_,iVec_,jVec_,a_,modeCoefs_,EMamplitude_,TMorTEFeildi_,TMorTEFeildj_,parityOfFieldi_,parityOfFieldj_,ki_,kj_,wi_,wj_,\[Theta]_,\[Phi]_,offsets_]:=(a^2*Sin[\[Theta]] * (displacementVecQ[mVec[[1]],mVec[[2]],mVec[[3]],a,modeCoefs[[1]],modeCoefs[[2]],modeCoefs[[3]],modeCoefs[[4]],modeCoefs[[5]],modeCoefs[[6]],a,\[Theta],\[Phi],offsets[[1]],offsets[[2]],offsets[[3]]].{1,0,0}) * ((wi/wj) * magneticField[EMamplitude,parityOfFieldj,TMorTEFeildj, jVec[[1]], jVec[[2]], jVec[[3]],a,kj,a,\[Theta],\[Phi],offsets[[4]],offsets[[5]],offsets[[6]]].magneticField[EMamplitude,parityOfFieldi,TMorTEFeildi,iVec[[1]], iVec[[2]], iVec[[3]],a,ki,a,\[Theta],\[Phi],offsets[[4]],offsets[[5]],offsets[[6]]]- electricField[EMamplitude,parityOfFieldj,TMorTEFeildj,jVec[[1]], jVec[[2]], jVec[[3]],a,kj,a,\[Theta],\[Phi],offsets[[4]],offsets[[5]],offsets[[6]]].electricField[EMamplitude,parityOfFieldi,TMorTEFeildi,iVec[[1]], iVec[[2]], iVec[[3]],a,ki,a,\[Theta],\[Phi],offsets[[4]],offsets[[5]],offsets[[6]]]))
+overlapIntegrand[mVec_,iVec_,jVec_,a_,modeCoefs_,EMamplitude_,TMorTEFeildi_,TMorTEFeildj_,parityOfFieldi_,parityOfFieldj_,ki_,kj_,wi_,wj_,\[Theta]_,\[Phi]_,offsets_,align_]:=(a^2*Sin[\[Theta]] * (displacementVecQ[mVec[[1]],mVec[[2]],mVec[[3]],a,modeCoefs[[1]],modeCoefs[[2]],modeCoefs[[3]],modeCoefs[[4]],modeCoefs[[5]],modeCoefs[[6]],a,\[Theta],\[Phi],offsets[[1]],offsets[[2]],offsets[[3]]].{1,0,0}) * ((wi/wj) * magneticField[EMamplitude,parityOfFieldj,TMorTEFeildj, jVec[[1]], jVec[[2]], jVec[[3]],a,kj,a,\[Theta],\[Phi],offsets[[4]],offsets[[5]],offsets[[6]]].magneticField[EMamplitude,parityOfFieldi,TMorTEFeildi,iVec[[1]], iVec[[2]], iVec[[3]],a,ki,a,\[Theta],\[Phi],offsets[[4]],offsets[[5]],offsets[[6]]]*align - electricField[EMamplitude,parityOfFieldj,TMorTEFeildj,jVec[[1]], jVec[[2]], jVec[[3]],a,kj,a,\[Theta],\[Phi],offsets[[4]],offsets[[5]],offsets[[6]]].electricField[EMamplitude,parityOfFieldi,TMorTEFeildi,iVec[[1]], iVec[[2]], iVec[[3]],a,ki,a,\[Theta],\[Phi],offsets[[4]],offsets[[5]],offsets[[6]]]*align))
 
-overlapfunction[modes_,a_,TMorTEFeildi_,TMorTEFeildj_,parityOfFieldi_,parityOfFieldj_,ki_,kj_,wi_,wj_,offsets_]:=((4*Pi*a^3/3)^(1/3)/(2*calculateEMFieldEnergy[TMorTEFeildi,1.0,parityOfFieldi,modes[[4]],modes[[5]],modes[[6]],a,ki])) *NIntegrate[Re[Activate[overlapIntegrand[{modes[[1]],modes[[2]],modes[[3]]},{modes[[4]],modes[[5]],modes[[6]]},{modes[[7]],modes[[8]],modes[[9]]},a,{"C0","D0",0.0,0.0,"C2","D2"}/.Quiet[(StringJoin["m",ToString[modes[[1]]],"n",ToString[modes[[2]]],"l",ToString[modes[[3]]]]/.MODES[[1]])],1.0,TMorTEFeildi,TMorTEFeildj,parityOfFieldi,parityOfFieldj,ki,kj,wi,wj,\[Theta],\[Phi],offsets]]], {\[Theta],0.0,Pi},{\[Phi],-Pi,Pi}, Method->{"AdaptiveMonteCarlo"},MaxPoints->10^4,PrecisionGoal->2]*getNormalizationFactor[parityOfFieldi,modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeildi,ki]*getNormalizationFactor[parityOfFieldj,modes[[7]],modes[[8]],modes[[9]],a,TMorTEFeildj,kj]
+overlapfunction[modes_,a_,TMorTEFeildi_,TMorTEFeildj_,parityOfFieldi_,parityOfFieldj_,ki_,kj_,wi_,wj_,offsets_,align_]:=((4*Pi*a^3/3)^(1/3)/(2*calculateEMFieldEnergy[TMorTEFeildi,1.0,parityOfFieldi,modes[[4]],modes[[5]],modes[[6]],a,ki])) *NIntegrate[Re[Activate[overlapIntegrand[{modes[[1]],modes[[2]],modes[[3]]},{modes[[4]],modes[[5]],modes[[6]]},{modes[[7]],modes[[8]],modes[[9]]},a,{"C0","D0",0.0,0.0,"C2","D2"}/.Quiet[(StringJoin["m",ToString[modes[[1]]],"n",ToString[modes[[2]]],"l",ToString[modes[[3]]]]/.MODES[[1]])],1.0,TMorTEFeildi,TMorTEFeildj,parityOfFieldi,parityOfFieldj,ki,kj,wi,wj,\[Theta],\[Phi],offsets,align]]], {\[Theta],0.0,Pi},{\[Phi],-Pi,Pi}, Method->{"AdaptiveMonteCarlo"},MaxPoints->10^4,PrecisionGoal->2]*getNormalizationFactor[parityOfFieldi,modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeildi,ki]*getNormalizationFactor[parityOfFieldj,modes[[7]],modes[[8]],modes[[9]],a,TMorTEFeildj,kj]
 
-overlap1Sphere2Modes[modes_,a_,TMorTEFeildi_,TMorTEFeildj_,parityOfFieldi_,parityOfFieldj_,offsets_]:=overlapfunction[modes,a,TMorTEFeildi,TMorTEFeildj,parityOfFieldi,parityOfFieldj,Activate[wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeildi]],Activate[wavenumberEM[modes[[7]],modes[[8]],modes[[9]],a,TMorTEFeildj]],Activate[wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeildi]],Activate[wavenumberEM[modes[[7]],modes[[8]],modes[[9]],a,TMorTEFeildj]],offsets]
+overlap1Sphere2Modes[modes_,a_,TMorTEFeildi_,TMorTEFeildj_,parityOfFieldi_,parityOfFieldj_,offsets_]:=overlapfunction[modes,a,TMorTEFeildi,TMorTEFeildj,parityOfFieldi,parityOfFieldj,Activate[wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeildi]],Activate[wavenumberEM[modes[[7]],modes[[8]],modes[[9]],a,TMorTEFeildj]],Activate[wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeildi]],Activate[wavenumberEM[modes[[7]],modes[[8]],modes[[9]],a,TMorTEFeildj]],offsets,1]
 
 
 
@@ -271,21 +277,29 @@ Print["defined overlap function..."]
 couplingPoints={{innerRadius,Pi/2.0,Pi},{innerRadius,Pi/2.0,0.0}};
 
 Fpotential[amplitude_,parity_,tmorte_, m_,n_,p_,a_,k_,r_,\[Theta]_,\[Phi]_,ang1_,ang2_,ang3_]:=(1/(omegaEM[m,n,p,a,tmorte]))*magneticField[amplitude,parity,tmorte, m,n,p,a,k,r,\[Theta],\[Phi],ang1,ang2,ang3]
-garbageVariableUsedToDefineFunctions=(1/(k))*electricField[amplitude,parity,tmorte,m0,n0,p0,a,k,r,\[Theta],\[Phi],ang1,ang2,ang3]
+garbageVariableUsedToDefineFunctions=(1/(k))*electricField[amplitude,parity,tmorte,m0,n0,p0,a,k,r,\[Theta],\[Phi],ang1,ang2,ang3];
 Apotential[amplitude_,parity_,tmorte_, m0_,n0_,p0_,a_,k_,r_,\[Theta]_,\[Phi]_,ang1_,ang2_,ang3_]:=Evaluate[garbageVariableUsedToDefineFunctions]
 Clear[garbageVariableUsedToDefineFunctions]
+
+Print["defined potentials..."]
 
 garbageVariableUsedToDefineFunctions=2*Norm[Fpotential[amplitude,parity,tmorte,m0,n0,p0,a,k,#1,#2,#3,offsets[[4]],offsets[[5]],offsets[[6]]]&@@couplingPoints[[1]]]^2-(Apotential[amplitude,parity,tmorte,m0,n0,p0,a,k,#1,#2,#3,offsets[[4]],offsets[[5]],offsets[[6]]][[1]]&@@couplingPoints[[1]])^2;
 c\[Alpha]\[Alpha][amplitude_,parity_,tmorte_, m0_,n0_,p0_,a_,k_,offsets_]:=Evaluate[garbageVariableUsedToDefineFunctions]
 Clear[garbageVariableUsedToDefineFunctions];
 
+Print["defined caa..."]
+
 garbageVariableUsedToDefineFunctions=2*Norm[Fpotential[amplitude,parity,tmorte,m0,n0,p0,a,k,#1,#2,#3,offsets[[7]],offsets[[8]],offsets[[9]]]&@@couplingPoints[[2]]]^2-(Apotential[amplitude,parity,tmorte,m0,n0,p0,a,k,#1,#2,#3,offsets[[7]],offsets[[8]],offsets[[9]]][[1]]&@@couplingPoints[[2]])^2;
 c\[Beta]\[Beta][amplitude_,parity_,tmorte_, m0_,n0_,p0_,a_,k_,offsets_]:=Evaluate[garbageVariableUsedToDefineFunctions]
 Clear[garbageVariableUsedToDefineFunctions];
 
+Print["defined cbb..."]
+
 garbageVariableUsedToDefineFunctions=2*(Fpotential[amplitude,parity,tmorte,m0,n0,p0,a,k,#1,#2,#3,offsets[[4]],offsets[[5]],offsets[[6]]]&@@couplingPoints[[1]]).(Fpotential[amplitude,parity,tmorte,m0,n0,p0,a,k,#1,#2,#3,offsets[[7]],offsets[[8]],offsets[[9]]]&@@couplingPoints[[2]])-(Apotential[amplitude,parity,tmorte,m0,n0,p0,a,k,#1,#2,#3,offsets[[7]],offsets[[8]],offsets[[9]]][[1]]&@@couplingPoints[[2]])*(Apotential[amplitude,parity,tmorte,m0,n0,p0,a,k,#1,#2,#3,offsets[[6]],offsets[[7]],offsets[[8]]][[1]]&@@couplingPoints[[1]]);
 c\[Alpha]\[Beta][amplitude_,parity_,tmorte_, m0_,n0_,p0_,a_,k_,offsets_]:=Evaluate[garbageVariableUsedToDefineFunctions]
 Clear[garbageVariableUsedToDefineFunctions];
+
+Print["defined cab..."]
 
 (* solve for the frequency shift from quadratic *)
 garbageVariableUsedToDefineFunctions=(( 2 - (4/3)*(d^3/V)*(c\[Alpha]\[Alpha][amplitude,parity,tmorte, m0,n0,p0,a,k,offsets]+c\[Beta]\[Beta][amplitude,parity,tmorte, m,n,p,a,k,offsets]))/2 + (1/2)*(( 2 - (4/3)*(d^3/V)*(c\[Alpha]\[Alpha][amplitude,parity,tmorte, m0,n0,p0,a,k,offsets]+c\[Beta]\[Beta][amplitude,parity,tmorte, m,n,p,a,k,offsets]))^2 - 4*(1 - (4/3)*(d^3/V)*(c\[Alpha]\[Alpha][amplitude,parity,tmorte,m0,n0,p0,a,k,offsets]+c\[Beta]\[Beta][amplitude,parity,tmorte, m,n,p,a,k,offsets]) + (16/9)*(d^6/V^2)*(c\[Alpha]\[Alpha][amplitude,parity,tmorte,m0,n0,p0,a,k,offsets]*c\[Beta]\[Beta][amplitude,parity,tmorte, m,n,p,a,k,offsets]-c\[Alpha]\[Beta][amplitude,parity,tmorte,m0,n0,p0,a,k,offsets]^2)))^(1/2));
@@ -297,8 +311,6 @@ frequencyCoefMinus[amplitude_,parity_,tmorte_, m0_,n0_,p0_,a_,k_,d_,V_,offsets_]
 Clear[garbageVariableUsedToDefineFunctions];
 
 getShiftedFrequencies[amplitude_,parity_,tmorte_,m_,n_,p_,a_,d_,offsets_]:=Activate[omegaEM[m,n,p,a,tmorte]*{frequencyCoefPlus[amplitude,parity,tmorte, m,n,p,a,wavenumberEM[m,n,p,a,tmorte],d,(4.0/3.0)*Pi*a^3,offsets],frequencyCoefMinus[amplitude,parity,tmorte, m,n,p,a,wavenumberEM[m,n,p,a,tmorte],d,(4.0/3.0)*Pi*a^3,offsets] }]
-
-
 
 
 
@@ -314,11 +326,7 @@ Print["defined frequency splittings"]
 
 
 (* WRITE DOWN OVERLAP FUNCTION FOR COUPLED SPHERES *)
-overlapCoupledSpheresArtificialSplitting[modes_,a_,TMorTEFeild_,parityOfField_,d_,offsets_]:=overlapfunction[{modes[[1]],modes[[2]],modes[[3]],modes[[4]],modes[[5]],modes[[6]],modes[[4]],modes[[5]],modes[[6]]},a,TMorTEFeild,TMorTEFeild,parityOfField,parityOfField,(wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild]-0.001*wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild])/SPEEDOFLIGHT,
-(wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild]+0.001*wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild])/SPEEDOFLIGHT,(wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild]-0.001*wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild]),
-(wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild]+0.001*wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild]),{offsets[[1]],offsets[[2]],offsets[[3]],offsets[[4]],offsets[[5]],offsets[[6]],offsets[[4]],offsets[[5]],offsets[[6]]}]+overlapfunction[{modes[[1]],modes[[2]],modes[[3]],modes[[4]],modes[[5]],modes[[6]],modes[[4]],modes[[5]],modes[[6]]},a,TMorTEFeild,TMorTEFeild,parityOfField,parityOfField,(wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild]-0.001*wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild])/SPEEDOFLIGHT,
-(wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild]+0.001*wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild])/SPEEDOFLIGHT,(wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild]-0.001*wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild]),
-(wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild]+0.001*wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild]),{offsets[[1]],offsets[[2]],offsets[[3]],offsets[[7]],offsets[[8]],offsets[[9]],offsets[[7]],offsets[[8]],offsets[[9]]}]
+overlapCoupledSpheresArtificialSplitting[modes_,a_,TMorTEFeild_,parityOfField_,d_,offsets_,splitting_]:=overlapfunction[{modes[[1]],modes[[2]],modes[[3]],modes[[4]],modes[[5]],modes[[6]],modes[[4]],modes[[5]],modes[[6]]},a,TMorTEFeild,TMorTEFeild,parityOfField,parityOfField,wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild]-splitting,wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild] + splitting,wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild]-splitting,wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild]+splitting,{offsets[[1]],offsets[[2]],offsets[[3]],offsets[[4]],offsets[[5]],offsets[[6]],offsets[[4]],offsets[[5]],offsets[[6]]}, 1]  +  overlapfunction[{modes[[1]],modes[[2]],modes[[3]],modes[[4]],modes[[5]],modes[[6]],modes[[4]],modes[[5]],modes[[6]]},a,TMorTEFeild,TMorTEFeild,parityOfField,parityOfField,wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild]-splitting,wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild]+splitting,wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild]-splitting,wavenumberEM[modes[[4]],modes[[5]],modes[[6]],a,TMorTEFeild]+splitting,{offsets[[1]],offsets[[2]],offsets[[3]],offsets[[7]],offsets[[8]],offsets[[9]],offsets[[7]],offsets[[8]],offsets[[9]]}, -1]
 
 overlapCoupledSpheres[modes_,a_,TMorTEFeild_,parityOfField_,d_,offsets_]:=(overlapfunction[{modes[[1]],modes[[2]],modes[[3]],modes[[4]],modes[[5]],modes[[6]],modes[[4]],modes[[5]],modes[[6]]},a,TMorTEFeild,TMorTEFeild,parityOfField,parityOfField,#2/SPEEDOFLIGHT,
 #1/SPEEDOFLIGHT,#2,#1,{offsets[[1]],offsets[[2]],offsets[[3]],offsets[[4]],offsets[[5]],offsets[[6]],offsets[[4]],offsets[[5]],offsets[[6]]}]+overlapfunction[{modes[[1]],modes[[2]],modes[[3]],modes[[4]],modes[[5]],modes[[6]],modes[[4]],modes[[5]],modes[[6]]},a,TMorTEFeild,TMorTEFeild,parityOfField,parityOfField,#2/SPEEDOFLIGHT,
@@ -332,6 +340,20 @@ overlapCoupledSpheresPrintSplitting[modes_,a_,TMorTEFeild_,parityOfField_,d_,off
 
 
 
+(* DEFINE THE GW-MECHANICAL MODE COUPLING FUNCTION *)
+
+garbageVariableUsedToDefineFunctions=Simplify[r^3 * Sin[\[Theta]] *(Cos[\[Phi]]*Sin[\[Theta]]*(displacementVecQ[m,n,l,a,c0,d0,c1,d1,c2,d2,r,\[Theta],\[Phi],0.0,0.0,0.0].{Sin[\[Theta]]*Cos[\[Phi]],Cos[\[Theta]]*Cos[\[Phi]],-Sin[\[Phi]]})-Sin[\[Phi]]*Sin[\[Theta]]*(displacementVecQ[m,n,l,a,c0,d0,c1,d1,c2,d2,r,\[Theta],\[Phi],0.0,0.0,0.0].{Sin[\[Theta]]*Sin[\[Phi]],Cos[\[Theta]]*Sin[\[Phi]],Cos[\[Phi]]}))];
+
+gwMechCouplingIntegrandFixedGWVarMechCart2Sphere[m_,n_,l_,a_,c0_,d0_,c1_,d1_,c2_,d2_,r_,\[Theta]_,\[Phi]_]:=Evaluate[garbageVariableUsedToDefineFunctions]
+
+Clear[garbageVariableUsedToDefineFunctions];
+
+gwMechCouplingFixedGWVarMechCart2Sphere[m_,n_,l_,a_,b_]:=NIntegrate[Re[Activate[gwMechCouplingIntegrandFixedGWVarMechCart2Sphere[m,n,l,a,"C0","D0",0.0,0.0,"C2","D2",r,\[Theta],\[Phi]]/.Quiet[(StringJoin["m",ToString[m],"n",ToString[n],"l",ToString[l]]/.MODES[[1]])]]],{r,a,b},{\[Theta],0.01,Pi},{\[Phi],-Pi+0.01,Pi},Method->"AdaptiveMonteCarlo",MaxPoints->10^5,PrecisionGoal->2]
+
+gwMechCouplingFixedGWVarMechCart2SphereTwoSpheres[m_,n_,l_,a_,b_]:=NIntegrate[Re[Activate[gwMechCouplingIntegrandFixedGWVarMechCart2Sphere[m,n,l,a,"C0","D0",0.0,0.0,"C2","D2",r,\[Theta],\[Phi]]/.Quiet[(StringJoin["m",ToString[m],"n",ToString[n],"l",ToString[l]]/.MODES[[1]])]]],{r,a,b},{\[Theta],0.01,Pi},{\[Phi],-Pi+0.01,Pi},Method->"AdaptiveMonteCarlo",MaxPoints->10^5,PrecisionGoal->2]/(2*(4/3)*Pi*(outerRadius^3 - innerRadius^3))^(4/3)
+
+
+
 
 
 
@@ -341,13 +363,36 @@ Print["defined coupled overlap function"]
 
 
 (* DO SOME BITCHIN' CALCULATIONS *)
-overlapCoupledSpheres[{2,0,0,0,1,2},innerRadius,0,1,0.1,{0,0,0,0,0,0,0,0,0}]//AbsoluteTiming
+Print[Activate[wavenumberEM[0,1,2,1.0,0]]]
 
+Print["displacement vector dotted with radial vector..."]
+Activate[displacementVecQ[2,0,0,0.1,Quiet["C0"/.("m2n0l0"/.MODES[[1]])],Quiet["D0"/.("m2n0l0"/.MODES[[1]])],0.0,0.0,Quiet["C2"/.("m2n0l0"/.MODES[[1]])],Quiet["D2"/.("m2n0l0"/.MODES[[1]])],0.1,0.1,0.2,0.0,0.0,0.0]]
+
+Quiet[Activate[overlapIntegrand[{2,0,0},{0,1,2},{0,1,2},0.1,{Quiet["C0"/.("m2n0l0"/.MODES[[1]])],Quiet["D0"/.("m2n0l0"/.MODES[[1]])],0.0,0.0,Quiet["C2"/.("m2n0l0"/.MODES[[1]])],Quiet["D2"/.("m2n0l0"/.MODES[[1]])]} , 1.0, 0, 0, 1, 1, Activate[wavenumberEM[0,1,2,0.1,0]], Activate[wavenumberEM[0,1,2,0.1,0]], Activate[wavenumberEM[0,1,2,0.1,0]], Activate[wavenumberEM[0,1,2,0.1,0]], 0.1, 0.2, {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0}]]]
+
+Quiet[Activate[overlapCoupledSpheresArtificialSplitting[{2,0,0,0,1,2},innerRadius,0,1,0.1,{0,0,0,0,0,0,0,0,0},0.0033]]//AbsoluteTiming]
+Quiet["m2n0l0" /. MODES[[1]]]
+Print["calculated a single overlap..."]
+
+
+(* IMPORT ALL THE MECHANICAL MODES YOU WANT TO CALCULATE *)
+modelist = Import["list-of-mechanical-modes.txt", "CSV"];
+Print[modelist]
+Print["c0 is given below"]
+Print[Quiet["C0"/.("m2n0l0"/.MODES[[1]])]]
+Print[Quiet["D0"/.("m2n0l0"/.MODES[[1]])]]
+Print[Quiet["C2"/.("m2n0l0"/.MODES[[1]])]]
+Print[Quiet["D2"/.("m2n0l0"/.MODES[[1]])]]
+
+
+
+currentMode = modelist[[ToExpression[argv[[7]]]]];
+Print[StringJoin["CURRENT MODE IS: ", ToString[currentMode]]] 
 
 
 (* make a list of all possible mode combinations *)
-wholeDataArray = ParallelTable[{theta1, theta2, overlapCoupledSpheres[{2,0,0,0,1,2},innerRadius,0,1,0.1,{0,theta1,theta2,0,-Pi/4.0,0,0,2.0*Pi - 3.0*Pi/4.0,0}]}, {theta1,0.0,2.0*Pi,0.3}, {theta2,0.0,2.0*Pi,0.3}];
+wholeDataArray = ParallelTable[{theta, phi, Activate[overlapCoupledSpheresArtificialSplitting[{currentMode[[1]],currentMode[[2]],currentMode[[3]],0,1,2},innerRadius,0,1,0.1,{0.0,theta,phi,0.0,-Pi/4.0,0.0,0.0,Pi/4.0,0.0}, 0.0033]]}, {theta,0.01,Pi,0.1}, {phi,-Pi + 0.01,Pi,0.1}];
 
 Print[wholeDataArray]
 
-Export[StringJoin[directory,"overlaps/overlaps-mech-EM-fixedEM-vary-mech-z-and-xy.txt"], wholeDataArray, "CSV"];
+Export[StringJoin[directory,"overlaps/eta-",ToString[currentMode[[1]]],ToString[currentMode[[2]]],ToString[currentMode[[3]]],"-012-012-EMpol-pion4pion4-minpion4pion4-0-variable-mechanical-euler-alpha-beta-hi-res-GWplus-newsigns.txt"], wholeDataArray, "CSV"];
