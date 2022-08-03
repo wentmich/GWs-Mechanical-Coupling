@@ -390,9 +390,8 @@ currentMode = modelist[[ToExpression[argv[[7]]]]];
 Print[StringJoin["CURRENT MODE IS: ", ToString[currentMode]]] 
 
 
-(* make a list of all possible mode combinations *)
 wholeDataArray = ParallelTable[{theta, phi, Activate[overlapCoupledSpheresArtificialSplitting[{currentMode[[1]],currentMode[[2]],currentMode[[3]],0,1,2},innerRadius,0,1,0.1,{0.0,theta,phi,0.0,-Pi/4.0,0.0,0.0,Pi/4.0,0.0}, 0.0033]]}, {theta,0.01,Pi,0.1}, {phi,-Pi + 0.01,Pi,0.1}];
 
 Print[wholeDataArray]
 
-Export[StringJoin[directory,"overlaps/eta-",ToString[currentMode[[1]]],ToString[currentMode[[2]]],ToString[currentMode[[3]]],"-012-012-EMpol-pion4pion4-minpion4pion4-0-variable-mechanical-euler-alpha-beta-hi-res-GWplus-newsigns.txt"], wholeDataArray, "CSV"];
+Export[StringJoin[directory,"overlaps/eta-",ToString[currentMode[[1]]],ToString[currentMode[[2]]],ToString[currentMode[[3]]],"-012-012-EMpol-pion4pion4-minpion4pion4-0-variable-mechanical-euler-alpha-beta-hi-res-GWplus-newsigns.txt"], Flatten[wholeDataArray,1], "CSV"];

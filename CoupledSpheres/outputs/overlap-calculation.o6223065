@@ -1,0 +1,66 @@
+Running job number  17
+"Launching kernels..."
+{"golub126", "golub126", "golub126", "golub126", "golub126", "golub126", "golub126", "golub126", "golub126", "golub126", "golub126", "golub126", "golub126", "golub126", "golub126", "golub126"}
+{"-noprompt", "-run", "0.2", "0.005", "/home/wentzel4/GWs/GWs-Mechanical-Coupling/CoupledSpheres/radius0.2-thickness0.005/", "NbCavity-r=0.2-0.005.txt", "17"}
+0.2
+0.20500000000000002
+
+                                  2                                                                                                     2
+NIntegrate::inumr: The integrand r  Norm[displacementVecQnorm[m, n, l, 0.2, ratios[[1]], ratios[[2]], ratios[[3]], r, \[Theta], \[Phi]]]  Sin[\[Theta]] has evaluated to non-numerical values for all sampling points in the region with boundaries {{0, 1}, {0, 1}, {0, 1}}.
+
+                                  2                                                                                                     2
+NIntegrate::inumr: The integrand r  Norm[displacementVecQnorm[m, n, l, 0.2, ratios[[1]], ratios[[2]], ratios[[3]], r, \[Theta], \[Phi]]]  Sin[\[Theta]] has evaluated to non-numerical values for all sampling points in the region with boundaries {{0, 1}, {0, 1}, {0, 1}}.
+
+                                  2                                                                                                     2
+NIntegrate::inumr: The integrand r  Norm[displacementVecQnorm[m, n, l, 0.2, ratios[[1]], ratios[[2]], ratios[[3]], r, \[Theta], \[Phi]]]  Sin[\[Theta]] has evaluated to non-numerical values for all sampling points in the region with boundaries {{0, 1}, {0, 1}, {0, 1}}.
+
+General::stop: Further output of NIntegrate::inumr will be suppressed during this calculation.
+
+                                  2                                                                                                     2
+NIntegrate::inumr: The integrand r  Norm[displacementVecQnorm[m, n, l, 0.2, ratios[[1]], ratios[[2]], ratios[[3]], r, \[Theta], \[Phi]]]  Sin[\[Theta]] has evaluated to non-numerical values for all sampling points in the region with boundaries {{0, 1}, {0, 1}, {0, 1}}.
+
+                                  2                                                                                                     2
+NIntegrate::inumr: The integrand r  Norm[displacementVecQnorm[m, n, l, 0.2, ratios[[1]], ratios[[2]], ratios[[3]], r, \[Theta], \[Phi]]]  Sin[\[Theta]] has evaluated to non-numerical values for all sampling points in the region with boundaries {{0, 1}, {0, 1}, {0, 1}}.
+
+                                  2                                                                                                     2
+NIntegrate::inumr: The integrand r  Norm[displacementVecQnorm[m, n, l, 0.2, ratios[[1]], ratios[[2]], ratios[[3]], r, \[Theta], \[Phi]]]  Sin[\[Theta]] has evaluated to non-numerical values for all sampling points in the region with boundaries {{0, 1}, {0, 1}, {0, 1}}.
+
+General::stop: Further output of NIntegrate::inumr will be suppressed during this calculation.
+"loaded in mode data..."
+"got zeros of bessel functions loaded..."
+3.886809010747586
+8.882206691803972
+6275.694946232964
+"defined mechanical modes..."
+"defined EM modes..."
+"defined normalization factor..."
+"defined energy..."
+"defined overlap function..."
+"defined potentials..."
+
+Part::partd: Part specification offsets[[4]] is longer than depth of object.
+
+Part::partd: Part specification offsets[[5]] is longer than depth of object.
+
+Part::partd: Part specification offsets[[6]] is longer than depth of object.
+
+General::stop: Further output of Part::partd will be suppressed during this calculation.
+"defined caa..."
+
+Part::partd: Part specification offsets[[7]] is longer than depth of object.
+
+Part::partd: Part specification offsets[[8]] is longer than depth of object.
+
+Part::partd: Part specification offsets[[9]] is longer than depth of object.
+
+
+"defined cbb..."
+
+
+
+
+
+
+
+
+"defined cab..."

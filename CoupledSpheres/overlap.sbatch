@@ -3,11 +3,11 @@
 #SBATCH --nodes=1                        # Number of nodes
 #SBATCH --ntasks-per-node=20             # Number of task (cores/ppn) per node
 #SBATCH --job-name=overlaps          # Name of batch job
-#SBATCH --partition=secondary-fdr           # Partition (queue)
+#SBATCH --partition=secondary           # Partition (queue)
 #SBATCH --output=overlap-calculation.o%j            # Name of batch job output file
-##SBATCH --error=overlap-calculation.e%j            # Name of batch job error file
-##SBATCH --mail-user=wentzel4@illinois.edu  # Send email notifications
-##SBATCH --mail-type=BEGIN,END           # Type of email notifications to send
+#SBATCH --error=overlap-calculation.e%j            # Name of batch job error file
+#SBATCH --mail-user=wentzel4@illinois.edu  # Send email notifications
+#SBATCH --mail-type=BEGIN,END           # Type of email notifications to send
 #
 ###############################################################################
 # Change to the directory from which the batch job was submitted
@@ -23,6 +23,6 @@ module load mathematica/12
 # Run Mathematica script
 echo "Running job number " ${SLURM_ARRAY_TASK_ID}
 
-math -noprompt -run < mech-em-overlap-solver.wls 1.0 0.01 "/home/wentzel4/GWs/GWs-Mechanical-Coupling/CoupledSpheres/radius1-thickness1percent/" "NbCavity-r=1.0-1.01.txt" ${SLURM_ARRAY_TASK_ID}
+math -noprompt -run < mech-em-overlap-solver.wls 0.2 0.005 "/home/wentzel4/GWs/GWs-Mechanical-Coupling/CoupledSpheres/radius0.2-thickness0.005/" "NbCavity-r=0.2-0.005.txt" ${SLURM_ARRAY_TASK_ID}
 
 
