@@ -5,7 +5,9 @@ Unprotect[$ProcessorCount];$ProcessorCount = 1;
 Print[ParallelEvaluate[$MachineName]];
 
 
-
+(* set maximum indices to calculate modes for, by default, lmax is set to m for any given m *)
+mmax = 4;
+nmax = 3;
 
 
 (* IMPORT CONSTANTS FROM COMMAND LINE *)
@@ -15,7 +17,6 @@ argc = Length @ argv;
 Print[ToString[argc]]
 
 Print[argv]
-
 
 (* DEFINE CONSTANTS *)
 
@@ -32,13 +33,13 @@ vl = (matieralDensity/(lambdaMaterial+2*shearModulus))^(-1/2);
 
 (* define all cavity parameters *)
 innerRadius=ToExpression[argv[[3]]];
-outerRadius=ToExpression[argv[[3]]]+ToExpression[argv[[4]]];
+outerRadius=Evaluate[ToExpression[argv[[3]]]+ToExpression[argv[[4]]]];
 maxWaveNumber=10.0^4;
 
 
 
 
-
+Print[StringJoin["Inner Radius: ", ToString[innerRadius]]]
 
 
 
@@ -59,7 +60,7 @@ smallMmatrix[j1y0_,r_,m_,n_,a_,pmn_,kmn_]:={{(m/(pmn*r) - lambdaMaterial/(2*shea
 
 bigMmatrix[m_,n_,a_,outerShell_,innerShell_,pmn_,kmn_]:=Evaluate[ArrayFlatten[{{smallMmatrix[1,outerShell,m,n,a,pmn,kmn],smallMmatrix[0,outerShell,m,n,a,pmn,kmn]},{smallMmatrix[1,innerShell,m,n,a,pmn,kmn],smallMmatrix[0,innerShell,m,n,a,pmn,kmn]}}]]
 
-myDeterminant=Simplify[Det[bigMmatrix[m,1,a,b,a,pmn,kmn]]];
+myDeterminant=Simplify[Det[bigMmatrix[m,n,a,b,a,pmn,kmn]]];
 matrixMdeterminent[m_,a_,b_,pmn_,kmn_]:=Evaluate[myDeterminant]
 Clear[myDeterminant];
 
@@ -79,7 +80,7 @@ Print[waveNumbersK]
 
 
 (* CHECKS OF RESONANT WAVE NUMBERS *)
-matrixDeterminantValues=Table[{m,kmn,Log10[Abs[matrixMdeterminent[m,innerRadius,outerRadius,kmn*Sqrt[shearModulus/(lambdaMaterial+2*shearModulus)],kmn]]]},{kmn,0.1,10.0,0.01},{m,0.0,2.0,0.1}]//AbsoluteTiming;
+matrixDeterminantValues=Table[{m,kmn,Log10[Abs[matrixMdeterminent[m,innerRadius,outerRadius,kmn*Sqrt[shearModulus/(lambdaMaterial+2*shearModulus)],kmn]]]},{kmn,0.1,maxWaveNumber/100.0,0.01},{m,0.0,2.0,0.1}]//AbsoluteTiming;
 matrixDeterminantValues2=ArrayFlatten[matrixDeterminantValues[[2]],1];
 lowKplot = ListDensityPlot[matrixDeterminantValues2, PlotTheme -> "Scientific", PlotLabel -> "det M_sph",FrameLabel -> {"m", "det(|M|)"}, ColorFunction -> "BlueGreenYellow", PlotLegends -> Automatic, InterpolationOrder -> 4];
 
@@ -97,7 +98,7 @@ zerosPlot =  ListPlot[{logDeterminantValuesM1, logDeterminantValuesM2}, PlotThem
 
 Print["made 3rd plot"]
 
-checkGrid = GraphicsRow[{lowKplot, highKplot, zerosPlot}];
+checkGrid = GraphicsGrid[{lowKplot, highKplot, zerosPlot}];
 Print["made grid"]
 Export[StringJoin[argv[[5]], "plots-of-mechanical-mode-frequencies.png"], checkGrid, "PNG"];
 
@@ -113,22 +114,24 @@ Print["checked resonant frequencies, look in associated directory for the checks
 (* WRITE DOWN MECHANICAL MODES *)
 (* mechanical frequencies *)
 (* real spherical harmonics for m greater than zero *)
-SphericalHarmonicYReal[m_,l_,\[Theta]_,\[Phi]_]:=(1/Sqrt[2])*(SphericalHarmonicY[m,-l,\[Theta],\[Phi]]+((-1)^m)*SphericalHarmonicY[m,l,\[Theta],\[Phi]])
+SphericalHarmonicYReal[m_,l_,\[Theta]_,\[Phi]_]:=If[l==0,SphericalHarmonicY[m,l,\[Theta],\[Phi]],(1/Sqrt[2])*(SphericalHarmonicY[m,-l,\[Theta],\[Phi]]+((-1)^l)*SphericalHarmonicY[m,l,\[Theta],\[Phi]])]
 
 (* wave numbers *)
 wavek[m_,n_,l_,a_]:=Inactivate[waveNumbersK[[m+1,n+1]]]
 wavep[m_,n_,l_,a_]:=Inactivate[waveNumbersP[[m+1,n+1]]]
 omegaMech[m_,n_,l_,a_]:=vt*Sqrt[wavek[m,n,l,a]]
+
 (* constituent functions *)
 aux\[Phi][m_,n_,l_,a_,r_,\[Theta]_,\[Phi]_]:=SphericalBesselJ[m,wavep[m,n,l,a]*r]*SphericalHarmonicYReal[m,l,\[Theta],\[Phi]];
 aux\[Phi]T[m_,n_,l_,a_,r_,\[Theta]_,\[Phi]_]:=SphericalBesselY[m,wavep[m,n,l,a]*r]*SphericalHarmonicYReal[m,l,\[Theta],\[Phi]];
 aux\[Psi][m_,n_,l_,a_,r_,\[Theta]_,\[Phi]_]:=SphericalBesselJ[m,wavek[m,n,l,a]*r]*SphericalHarmonicYReal[m,l,\[Theta],\[Phi]];
 aux\[Psi]T[m_,n_,l_,a_,r_,\[Theta]_,\[Phi]_]:=SphericalBesselY[m,wavek[m,n,l,a]*r]*SphericalHarmonicYReal[m,l,\[Theta],\[Phi]];
+
 (* mechanical mode displacement vector *)
-garbageVariableUsedToDefineFunctions=c0*Grad[aux\[Phi][m,n,l,a,r,\[Theta],\[Phi]],{r,\[Theta],\[Phi]},"Spherical"] + d0*Grad[aux\[Phi]T[m,n,l,a,r,\[Theta],\[Phi]],{r,\[Theta],\[Phi]},"Spherical"]+c1*Cross[{r,0,0},Grad[aux\[Psi][m,n,l,a,r,\[Theta],\[Phi]],{r,\[Theta],\[Phi]},"Spherical"]]+d1*Cross[{r,0,0},Grad[aux\[Psi]T[m,n,l,a,r,\[Theta],\[Phi]],{r,\[Theta],\[Phi]},"Spherical"]]+c2*Curl[Cross[{r,0,0},Grad[aux\[Psi][m,n,l,a,r,\[Theta],\[Phi]],{r,\[Theta],\[Phi]},"Spherical"]],{r,\[Theta],\[Phi]},"Spherical"]+d2*Curl[Cross[{r,0,0},Grad[aux\[Psi]T[m,n,l,a,r,\[Theta],\[Phi]],{r,\[Theta],\[Phi]},"Spherical"]],{r,\[Theta],\[Phi]},"Spherical"];
+garbageVariableUsedToDefineFunctions=Evaluate[c0*Grad[aux\[Phi][m,n,l,a,r,\[Theta],\[Phi]],{r,\[Theta],\[Phi]},"Spherical"] + d0*Grad[aux\[Phi]T[m,n,l,a,r,\[Theta],\[Phi]],{r,\[Theta],\[Phi]},"Spherical"]+c1*Cross[{r,0,0},Grad[aux\[Psi][m,n,l,a,r,\[Theta],\[Phi]],{r,\[Theta],\[Phi]},"Spherical"]]+d1*Cross[{r,0,0},Grad[aux\[Psi]T[m,n,l,a,r,\[Theta],\[Phi]],{r,\[Theta],\[Phi]},"Spherical"]]+c2*Curl[Cross[{r,0,0},Grad[aux\[Psi][m,n,l,a,r,\[Theta],\[Phi]],{r,\[Theta],\[Phi]},"Spherical"]],{r,\[Theta],\[Phi]},"Spherical"]+d2*Curl[Cross[{r,0,0},Grad[aux\[Psi]T[m,n,l,a,r,\[Theta],\[Phi]],{r,\[Theta],\[Phi]},"Spherical"]],{r,\[Theta],\[Phi]},"Spherical"]];
 displacementVecQ[m_,n_,l_,a_,c0_,d0_,c1_,d1_,c2_,d2_,r_,\[Theta]_,\[Phi]_]:=Evaluate[garbageVariableUsedToDefineFunctions]
 Clear[garbageVariableUsedToDefineFunctions]
-garbageVariableUsedToDefineFunctions=(Grad[aux\[Phi][m,n,l,a,r,\[Theta],\[Phi]],{r,\[Theta],\[Phi]},"Spherical"] + (d0ratio)*Grad[aux\[Phi]T[m,n,l,a,r,\[Theta],\[Phi]],{r,\[Theta],\[Phi]},"Spherical"]+(c2ratio)*Curl[Cross[{r,0,0},Grad[aux\[Psi][m,n,l,a,r,\[Theta],\[Phi]],{r,\[Theta],\[Phi]},"Spherical"]],{r,\[Theta],\[Phi]},"Spherical"]+(d2ratio)*Curl[Cross[{r,0,0},Grad[aux\[Psi]T[m,n,l,a,r,\[Theta],\[Phi]],{r,\[Theta],\[Phi]},"Spherical"]],{r,\[Theta],\[Phi]},"Spherical"]);
+garbageVariableUsedToDefineFunctions=Evaluate[(Grad[aux\[Phi][m,n,l,a,r,\[Theta],\[Phi]],{r,\[Theta],\[Phi]},"Spherical"] + (d0ratio)*Grad[aux\[Phi]T[m,n,l,a,r,\[Theta],\[Phi]],{r,\[Theta],\[Phi]},"Spherical"]+(c2ratio)*Curl[Cross[{r,0,0},Grad[aux\[Psi][m,n,l,a,r,\[Theta],\[Phi]],{r,\[Theta],\[Phi]},"Spherical"]],{r,\[Theta],\[Phi]},"Spherical"]+(d2ratio)*Curl[Cross[{r,0,0},Grad[aux\[Psi]T[m,n,l,a,r,\[Theta],\[Phi]],{r,\[Theta],\[Phi]},"Spherical"]],{r,\[Theta],\[Phi]},"Spherical"])];
 displacementVecQnorm[m_,n_,l_,a_,d0ratio_,c2ratio_,d2ratio_,r_,\[Theta]_,\[Phi]_]:=Evaluate[garbageVariableUsedToDefineFunctions]
 Clear[garbageVariableUsedToDefineFunctions]
 
@@ -141,9 +144,13 @@ Clear[garbageVariableUsedToDefineFunctions]
 findCoefRatios[m_,n_]:=ArrayFlatten[LinearSolve[bigMmatrix[m,n,innerRadius,outerRadius,innerRadius,(waveNumbersK[[m+1]][[n+1]])*Sqrt[shearModulus/(lambdaMaterial+2*shearModulus)],waveNumbersK[[m+1]][[n+1]]][[1;;4,2;;4]],-bigMmatrix[m,n,innerRadius,outerRadius,innerRadius,(waveNumbersK[[m+1]][[n+1]])*Sqrt[shearModulus/(lambdaMaterial+2*shearModulus)],waveNumbersK[[m+1]][[n+1]]][[1;;4,1;;1]]],1]
 
 modeInfoDataStructure={};
-For[m=1,m<4,m++,For[n=0,n<3,n++,For[l=0,l<=m,l++,ratios=findCoefRatios[m,n];c0=Quiet[(Quiet[NIntegrate[Activate[r^2*Sin[\[Theta]]*Quiet[Norm[Quiet[displacementVecQnorm[m,n,l,innerRadius,ratios[[2]],ratios[[1]],ratios[[3]],r,\[Theta],\[Phi]]]]]^2],{r,innerRadius,outerRadius},{\[Theta],0.0,Pi},{\[Phi],-Pi,Pi},Method->"AdaptiveMonteCarlo",MaxPoints->10^5]]/((4/3)*Pi*outerRadius^3 - (4/3)*Pi*innerRadius^3))^(-1/2)];modeInfoDataStructure=Append[modeInfoDataStructure,makeModeVariable[m,n,l,resonantFrequencies[[m+1,n+1]],waveNumbersK[[m+1,n+1]],waveNumbersP[[m+1,n+1]],c0,ratios[[1]]*c0,ratios[[2]]*c0,ratios[[3]]*c0]]]]]
-
-
-
+Module[{c0,m,n,l}, For[m=0,m<=mmax,m++,For[n=0,n<=nmax,n++,For[l=0,l<=m,l++,ratios=findCoefRatios[m,n];c0=Quiet[(Quiet[NIntegrate[Activate[r^2*Sin[\[Theta]]*Quiet[Norm[Re[displacementVecQnorm[m,n,l,innerRadius,ratios[[2]],ratios[[1]],ratios[[3]],r,\[Theta],\[Phi]]]]]^2],{r,innerRadius,outerRadius},{\[Theta],0.0,Pi},{\[Phi],-Pi,Pi},Method->"AdaptiveMonteCarlo",MaxPoints->10^5]]/((4/3)*Pi*outerRadius^3 - (4/3)*Pi*innerRadius^3))^(-1/2)];modeInfoDataStructure=Append[modeInfoDataStructure,makeModeVariable[m,n,l,resonantFrequencies[[m+1,n+1]],waveNumbersK[[m+1,n+1]],waveNumbersP[[m+1,n+1]],c0,ratios[[1]]*c0,ratios[[2]]*c0,ratios[[3]]*c0]]]]]]
 
 Quiet[Export[StringJoin[argv[[5]],"NbCavity-r=",argv[[3]],"-",argv[[4]],".txt"], InputForm[modeInfoDataStructure]]];
+
+checkNormFunction[mindices_]:=Module[{mvec=mindices,coefs},Print[Head[mvec[[1]]]];coefs=Quiet[{"C0","D0",0.0,0.0,"C2","D2"}/.(StringJoin["m",ToString[mvec[[1]]],"n",ToString[mvec[[2]]],"l",ToString[mvec[[3]]]]/.modeInfoDataStructure)];Print[coefs];NIntegrate[r^2*Sin[\[Theta]]*Norm[Re[Activate[displacementVecQ[mvec[[1]],mvec[[2]],mvec[[3]],innerRadius,coefs[[1]],coefs[[2]],coefs[[3]],coefs[[4]],coefs[[5]],coefs[[6]],r,\[Theta],\[Phi]]]]]^2,{r,innerRadius,outerRadius},{\[Theta],0.0,Pi},{\[Phi],-Pi,Pi},Method->"AdaptiveMonteCarlo",MaxPoints->10^5,PrecisionGoal->2]/((4/3)*Pi*(outerRadius^3-innerRadius^3))]
+
+modesCheckNorm={};
+Module[{m,n,l}, For[m=0,m<=mmax,m++,For[n=0,n<=nmax,n++,For[l=0,l<=m,l++, checknorm=checkNormFunction[{m,n,l}]; AppendTo[modesCheckNorm, {m, n, l, checknorm}]; Clear[checknorm]]]]]
+
+Quiet[Export[StringJoin[argv[[5]],"NbCavity-norm-checks.csv"], modesCheckNorm, "CSV"]];

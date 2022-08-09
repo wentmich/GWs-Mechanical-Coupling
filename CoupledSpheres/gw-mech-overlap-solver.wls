@@ -80,8 +80,8 @@ rotateSphericalVector[vector_,currentpoint_,eulerangles_]:=cartvec2spherevec[rot
 
 (* GET THE MECHANICAL MODE DATA FROM DIRECTORY *)
 MODES =Quiet[ToExpression[Quiet[Import[StringJoin[directory, filename]]]]];
-waveNumbersK=Table[Quiet["wavenumberk"/.(StringJoin["m",ToString[2],"n",ToString[n],"l",ToString[0]]/.MODES[[1]])],{m,0,3},{n, 0, 3}];
-waveNumbersP=Table[Quiet["wavenumberp"/.(StringJoin["m",ToString[2],"n",ToString[n],"l",ToString[0]]/.MODES[[1]])],{m,0,3},{n, 0, 3}];
+waveNumbersK=Table[Quiet["wavenumberk"/.(StringJoin["m",ToString[m],"n",ToString[n],"l",ToString[0]]/.MODES[[1]])],{m,0,3},{n, 0, 3}];
+waveNumbersP=Table[Quiet["wavenumberp"/.(StringJoin["m",ToString[m],"n",ToString[n],"l",ToString[0]]/.MODES[[1]])],{m,0,3},{n, 0, 3}];
 
 Print[MODES]
 
