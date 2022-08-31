@@ -27,7 +27,8 @@ n >= 1 radial
 0 <= l <= m azimuthal *)
 
 
-
+nmax = 10;
+mmax = 10;
 
 
 
@@ -49,6 +50,8 @@ directory = argv[[5]];
 filename = argv[[6]];
 maxWaveNumber=10.0^3;
 
+checknormORcalcoverlap = ToExpression[argv[[8]]];
+
 Print[innerRadius]
 Print[outerRadius]
 
@@ -69,7 +72,7 @@ cartvec2spherevec[X_,p_]:={X[[1]]*Sin[p[[2]]]*Cos[p[[3]]]+X[[2]]*Sin[p[[2]]]*Sin
 rotateCartesianVector[vector_,eulerangles_]:=RollPitchYawMatrix[eulerangles,{3,2,3}].vector
 
 (* write a function to rotate a spherical vector *)
-rotateSphericalVector[vector_,currentpoint_,eulerangles_]:=cartvec2spherevec[rotateCartesianVector[spherevec2cartvec[vector,currentpoint],eulerangles],currentpoint]
+rotateSphericalVector[vector_,currentpoint_,eulerangles_]:=cartvec2spherevec[rotateCartesianVector[spherevec2cartvec[vector,{0.0, Pi, Pi}],eulerangles],{0.0, Pi, Pi}]
 
 
 
@@ -80,8 +83,8 @@ rotateSphericalVector[vector_,currentpoint_,eulerangles_]:=cartvec2spherevec[rot
 
 (* GET THE MECHANICAL MODE DATA FROM DIRECTORY *)
 MODES =Quiet[ToExpression[Quiet[Import[StringJoin[directory, filename]]]]];
-waveNumbersK=Table[Quiet["wavenumberk"/.(StringJoin["m",ToString[m],"n",ToString[n],"l",ToString[0]]/.MODES[[1]])],{m,0,3},{n, 0, 3}];
-waveNumbersP=Table[Quiet["wavenumberp"/.(StringJoin["m",ToString[m],"n",ToString[n],"l",ToString[0]]/.MODES[[1]])],{m,0,3},{n, 0, 3}];
+waveNumbersK=Table[Quiet["wavenumberk"/.(StringJoin["m",ToString[m],"n",ToString[n],"l",ToString[0]]/.MODES[[1]])],{m,0,mmax},{n, 0, nmax}];
+waveNumbersP=Table[Quiet["wavenumberp"/.(StringJoin["m",ToString[m],"n",ToString[n],"l",ToString[0]]/.MODES[[1]])],{m,0,mmax},{n, 0, nmax}];
 
 Print[MODES]
 
@@ -108,7 +111,7 @@ Print["got zeros of bessel functions loaded..."]
 
 (* WRITE DOWN THE MECHANICAL MODES OF THE CAVITY *)
 (* wave numbers *)
-wavek[m_,n_,l_,a_]:=Inactivate[waveNumbersK[[m+1]][[n+1]]]
+(*wavek[m_,n_,l_,a_]:=Inactivate[waveNumbersK[[m+1]][[n+1]]]
 wavep[m_,n_,l_,a_]:=Inactivate[waveNumbersP[[m+1]][[n+1]]]
 (*wavek[m_,n_,l_,a_]:= Sqrt[omegaMech[m,n,l,a]^2 / vt^2];
 wavep[m_,n_,l_,a_]:= Sqrt[omegaMech[m,n,l,a]^2 / vl^2];*)
@@ -134,7 +137,26 @@ Clear[garbageVariableUsedToDefineFunctions]
 garbageVariableUsedToDefineFunctions=rotateSphericalVector[displacementVecQnotRotated[m,n,l,a,c0,d0,c1,d1,c2,d2,#1,#2,#3]&@@ToSphericalCoordinates[Inverse[RollPitchYawMatrix[{ang1,ang2,ang3},{3,2,3}]].FromSphericalCoordinates[{r,\[Theta],\[Phi]}]],{r,\[Theta],\[Phi]},{ang1,ang2,ang3}];
 displacementVecQ[m_,n_,l_,a_,c0_,d0_,c1_,d1_,c2_,d2_,r_,\[Theta]_,\[Phi]_,ang1_,ang2_,ang3_]:=Evaluate[garbageVariableUsedToDefineFunctions]
 Clear[garbageVariableUsedToDefineFunctions]
+*)
 
+wavek[m_,n_,l_,a_]:=Inactivate[waveNumbersK[[m+1,n+1]]]
+wavep[m_,n_,l_,a_]:=Inactivate[waveNumbersP[[m+1,n+1]]]
+omegaMech[m_,n_,l_,a_]:=vt*Sqrt[wavek[m,n,l,a]]
+
+Nnm=Simplify[Grad[SphericalBesselJ[m,wavep[m,n,l,a]*r],{r,\[Theta],\[Phi]},"Spherical"]-2*c2ratio*Grad[SphericalBesselJ[m,wavek[m,n,l,a]*r],{r,\[Theta],\[Phi]},"Spherical"]-c2ratio*r*D[Grad[SphericalBesselJ[m,wavek[m,n,l,a]*r],{r,\[Theta],\[Phi]},"Spherical"],r]+c2ratio*{r,0,0}*Laplacian[SphericalBesselJ[m,wavek[m,n,l,a]*r],{r,\[Theta],\[Phi]},"Spherical"]-c2ratio*{r,0,0}*SphericalBesselJ[m,wavek[m,n,l,a]*r]*m*(m+1)/r^2 +d0ratio*Grad[SphericalBesselY[m,wavep[m,n,l,a]*r],{r,\[Theta],\[Phi]},"Spherical"]-2*d2ratio*Grad[SphericalBesselY[m,wavek[m,n,l,a]*r],{r,\[Theta],\[Phi]},"Spherical"]-d2ratio*r*D[Grad[SphericalBesselY[m,wavek[m,n,l,a]*r],{r,\[Theta],\[Phi]},"Spherical"],r]+d2ratio*{r,0,0}*Laplacian[SphericalBesselY[m,wavek[m,n,l,a]*r],{r,\[Theta],\[Phi]},"Spherical"]-d2ratio*{r,0,0}*SphericalBesselY[m,wavek[m,n,l,a]*r]*m*(m+1)/r^2];
+Enm=Simplify[SphericalBesselJ[m,wavep[m,n,l,a]*r]-1*c2ratio*SphericalBesselJ[m,wavek[m,n,l,a]*r]-c2ratio*r*D[SphericalBesselJ[m,wavek[m,n,l,a]*r],r]+d0ratio*SphericalBesselY[m,wavep[m,n,l,a]*r]-1*d2ratio*SphericalBesselY[m,wavek[m,n,l,a]*r]-d2ratio*r*D[SphericalBesselY[m,wavek[m,n,l,a]*r],r]];
+
+garbageVariableUsedToDefineFunctions=Nnm*SphericalHarmonicY[m,l,\[Theta],\[Phi]] + Enm*Grad[SphericalHarmonicY[m,l,\[Theta],\[Phi]],{r,\[Theta],\[Phi]},"Spherical"];
+displacementVecQnorm[m_,n_,l_,a_,d0ratio_,c2ratio_,d2ratio_,r_,\[Theta]_,\[Phi]_]:=Evaluate[garbageVariableUsedToDefineFunctions]
+Clear[garbageVariableUsedToDefineFunctions]
+
+displacementVecQnotRotated[m_,n_,l_,a_,c0_,d0_,c1_,d1_,c2_,d2_,r_,\[Theta]_,\[Phi]_]:=Evaluate[c0*displacementVecQnorm[m,n,l,a,d0/c0,c2/c0,d2/c0,r,\[Theta],\[Phi]]]
+
+
+(* define a rotated displacement vector field *)
+garbageVariableUsedToDefineFunctions=rotateSphericalVector[displacementVecQnotRotated[m,n,l,a,c0,d0,c1,d1,c2,d2,#1,#2,#3]&@@ToSphericalCoordinates[Inverse[RollPitchYawMatrix[{ang1,ang2,ang3}]].FromSphericalCoordinates[{r,\[Theta],\[Phi]}]],{r,\[Theta],\[Phi]},{ang1,ang2,ang3}];
+displacementVecQ[m_,n_,l_,a_,c0_,d0_,c1_,d1_,c2_,d2_,r_,\[Theta]_,\[Phi]_,ang1_,ang2_,ang3_]:=Evaluate[garbageVariableUsedToDefineFunctions]
+Clear[garbageVariableUsedToDefineFunctions]
 
 
 
@@ -385,13 +407,12 @@ Print[Quiet["C2"/.("m2n0l0"/.MODES[[1]])]]
 Print[Quiet["D2"/.("m2n0l0"/.MODES[[1]])]]
 
 
+checkNormFunction[mindices_]:=Module[{mvec=mindices,coefs},Print[Head[mvec[[1]]]];coefs=Quiet[{"C0","D0",0.0,0.0,"C2","D2"}/.(StringJoin["m",ToString[mvec[[1]]],"n",ToString[mvec[[2]]],"l",ToString[mvec[[3]]]]/.MODES[[1]])];Print[coefs];NIntegrate[r^2*Sin[\[Theta]]*Norm[Re[Activate[displacementVecQnotRotated[mvec[[1]],mvec[[2]],mvec[[3]],innerRadius,coefs[[1]],coefs[[2]],coefs[[3]],coefs[[4]],coefs[[5]],coefs[[6]],r,\[Theta],\[Phi]]]]]^2,{r,innerRadius,outerRadius},{\[Theta],0.0,Pi},{\[Phi],-Pi,Pi},Method->"AdaptiveMonteCarlo",MaxPoints->10^5,PrecisionGoal->2]/((4/3)*Pi*(outerRadius^3-innerRadius^3))]
+
 
 currentMode = modelist[[ToExpression[argv[[7]]]]];
-Print[StringJoin["CURRENT MODE IS: ", ToString[currentMode]]] 
-
-
-wholeDataArray = ParallelTable[{theta, phi, Activate[overlapCoupledSpheresArtificialSplitting[{currentMode[[1]],currentMode[[2]],currentMode[[3]],0,1,2},innerRadius,0,1,0.1,{0.0,theta,phi,0.0,-Pi/4.0,0.0,0.0,Pi/4.0,0.0}, 0.0033]]}, {theta,0.01,Pi,0.1}, {phi,-Pi + 0.01,Pi,0.1}];
-
-Print[wholeDataArray]
-
-Export[StringJoin[directory,"overlaps/eta-",ToString[currentMode[[1]]],ToString[currentMode[[2]]],ToString[currentMode[[3]]],"-012-012-EMpol-pion4pion4-minpion4pion4-0-variable-mechanical-euler-alpha-beta-hi-res-GWplus-newsigns.txt"], Flatten[wholeDataArray,1], "CSV"];
+If[checkNormFunction[currentMode] > 0.9 && checkNormFunction[currentMode] < 1.1, Print["\n\n\n\n\n\n\n\n\n\nTHE MODE IS PROPERLY NORMALIZED\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"],  Print["\n\n\n\n\n\n\n\n\n\nTHE MODE MAY NOT BE PROPERLY NORMALIZED\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"]];
+Print[StringJoin["CURRENT MODE IS: ", ToString[currentMode]]];
+wholeDataArray = ParallelTable[{theta, phi, Activate[overlapCoupledSpheresArtificialSplitting[{currentMode[[1]],currentMode[[2]],currentMode[[3]],0,1,2},innerRadius,0,1,0.1,{0.0,theta,phi,0.0,-Pi/4.0,0.0,0.0,Pi/4.0,0.0}, 0.0033]]}, {theta,0.01,Pi,0.5}, {phi,-Pi + 0.01,Pi,1.0}];
+Print[wholeDataArray];
+Export[StringJoin[directory,"overlaps/eta-",ToString[currentMode[[1]]],ToString[currentMode[[2]]],ToString[currentMode[[3]]],"-012-012-EMPol-minpi4-pi4.csv"], Flatten[wholeDataArray,1], "CSV"]
